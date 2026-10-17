@@ -5,8 +5,8 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata = {
-  title: "AnimeLounge | AI-Powered Anime & Manga Recommendations",
-  description: "A modern multi-domain recommendation platform for anime powered by intelligent similarity vectors.",
+  title: "Beats Lounge | AI-Powered Music & Audio Editing",
+  description: "Edit and create music effortlessly with AI-powered tools at Beats Lounge.",
 };
 
 const MainLayout = ({ children }) => {

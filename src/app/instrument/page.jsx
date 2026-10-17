@@ -22,6 +22,27 @@ const INSTRUMENTS = [
     filterCutoff: 3000 
   },
   { 
+    id: "elec-guitar", 
+    name: "Electric Guitar", 
+    type: "fm", 
+    options: { harmonicity: 2.0, modulationIndex: 12, oscillator: { type: "sawtooth" }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.3, release: 0.6 } },
+    filterCutoff: 4000 
+  },
+  { 
+    id: "steel-drum", 
+    name: "Steel Drum", 
+    type: "fm", 
+    options: { harmonicity: 2.7, modulationIndex: 8, oscillator: { type: "triangle" }, envelope: { attack: 0.002, decay: 0.5, sustain: 0.05, release: 0.4 } },
+    filterCutoff: 3500 
+  },
+  { 
+    id: "slap-bass", 
+    name: "Slap Bass", 
+    type: "poly", 
+    options: { oscillator: { type: "triangle8" }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.2, release: 0.3 } },
+    filterCutoff: 1200 
+  },
+  { 
     id: "piano", 
     name: "Grand Piano", 
     type: "fm", 
@@ -101,42 +122,76 @@ export default function InstrumentPage() {
   const [recordedBlobUrl, setRecordedBlobUrl] = useState(null);
   const [activeNotes, setActiveNotes] = useState({});
 
-  // Effect States
-  const [enableDelay, setEnableDelay] = useState(false);
-  const [delayTime, setDelayTime] = useState("8n");
+  // Core & Effect Controls State
+  const [filterCutoff, setFilterCutoff] = useState(selectedInstrument.filterCutoff);
+  const [filterType, setFilterType] = useState("lowpass");
+  
   const [enableDistortion, setEnableDistortion] = useState(false);
   const [distortionAmount, setDistortionAmount] = useState(0.2);
-  const [filterCutoff, setFilterCutoff] = useState(selectedInstrument.filterCutoff);
 
-  // Tone.js Refs
+  const [enableBitCrusher, setEnableBitCrusher] = useState(false);
+  const [bitCrusherBits, setBitCrusherBits] = useState(8);
+
+  const [eqLow, setEqLow] = useState(0);
+  const [eqMid, setEqMid] = useState(0);
+  const [eqHigh, setEqHigh] = useState(0);
+
+  const [enableAutoWah, setEnableAutoWah] = useState(false);
+  const [enableChorus, setEnableChorus] = useState(false);
+  const [enablePhaser, setEnablePhaser] = useState(false);
+  const [enableTremolo, setEnableTremolo] = useState(false);
+  const [enableVibrato, setEnableVibrato] = useState(false);
+
+  const [enablePitchShift, setEnablePitchShift] = useState(false);
+  const [pitchShiftSemitones, setPitchShiftSemitones] = useState(0);
+
+  const [enableDelay, setEnableDelay] = useState(false);
+  const [delayTime, setDelayTime] = useState("8n");
+
+  const [enableReverb, setEnableReverb] = useState(false);
+  const [reverbDecay, setReverbDecay] = useState(2.5);
+
+  // Audio Node Refs
   const synthRef = useRef(null);
   const filterRef = useRef(null);
-  const delayRef = useRef(null);
   const distortionRef = useRef(null);
+  const bitCrusherRef = useRef(null);
+  const eqRef = useRef(null);
+  const autoWahRef = useRef(null);
+  const chorusRef = useRef(null);
+  const phaserRef = useRef(null);
+  const tremoloRef = useRef(null);
+  const vibratoRef = useRef(null);
+  const pitchShiftRef = useRef(null);
+  const delayRef = useRef(null);
+  const reverbRef = useRef(null);
+  const stereoWidenerRef = useRef(null);
+  const limiterRef = useRef(null);
+
   const destRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const recordedChunksRef = useRef([]);
 
+  // Initialize Audio Effects & Synth Architecture
   useEffect(() => {
     destRef.current = Tone.getContext().createMediaStreamDestination();
 
-    filterRef.current = new Tone.Filter({
-      frequency: selectedInstrument.filterCutoff,
-      type: "lowpass",
-    });
+    filterRef.current = new Tone.Filter({ frequency: selectedInstrument.filterCutoff, type: "lowpass" });
+    distortionRef.current = new Tone.Distortion({ distortion: 0.2, wet: 0.5 });
+    bitCrusherRef.current = new Tone.BitCrusher({ bits: 8, wet: 0.5 });
+    eqRef.current = new Tone.EQ3({ low: 0, mid: 0, high: 0 });
+    autoWahRef.current = new Tone.AutoWah({ baseFrequency: 150, octaves: 6, wet: 0.5 });
+    chorusRef.current = new Tone.Chorus({ frequency: 4, delayTime: 2.5, depth: 0.5, wet: 0.5 });
+    phaserRef.current = new Tone.Phaser({ frequency: 0.5, octaves: 3, baseFrequency: 350, wet: 0.4 });
+    tremoloRef.current = new Tone.Tremolo({ frequency: 5, depth: 0.7, wet: 0.5 }).start();
+    vibratoRef.current = new Tone.Vibrato({ frequency: 5, depth: 0.2, wet: 0.5 });
+    pitchShiftRef.current = new Tone.PitchShift({ pitch: 0, wet: 1.0 });
+    delayRef.current = new Tone.FeedbackDelay({ delayTime: "8n", feedback: 0.3, wet: 0.4 });
+    reverbRef.current = new Tone.Reverb({ decay: 2.5, wet: 0.4 });
+    stereoWidenerRef.current = new Tone.StereoWidener({ width: 0.5 });
+    limiterRef.current = new Tone.Limiter(-1);
 
-    delayRef.current = new Tone.FeedbackDelay({
-      delayTime: delayTime,
-      feedback: 0.3,
-      wet: 0.4,
-    });
-
-    distortionRef.current = new Tone.Distortion({
-      distortion: distortionAmount,
-      wet: 0.5,
-    });
-
-    // Instantiate correct synth architecture based on instrument preset
+    // Instantiate appropriate poly synth engine
     if (selectedInstrument.type === "fm") {
       synthRef.current = new Tone.PolySynth(Tone.FMSynth, selectedInstrument.options);
     } else if (selectedInstrument.type === "am") {
@@ -150,58 +205,144 @@ export default function InstrumentPage() {
     return () => {
       synthRef.current?.dispose();
       filterRef.current?.dispose();
-      delayRef.current?.dispose();
       distortionRef.current?.dispose();
+      bitCrusherRef.current?.dispose();
+      eqRef.current?.dispose();
+      autoWahRef.current?.dispose();
+      chorusRef.current?.dispose();
+      phaserRef.current?.dispose();
+      tremoloRef.current?.dispose();
+      vibratoRef.current?.dispose();
+      pitchShiftRef.current?.dispose();
+      delayRef.current?.dispose();
+      reverbRef.current?.dispose();
+      stereoWidenerRef.current?.dispose();
+      limiterRef.current?.dispose();
     };
   }, [selectedInstrument]);
 
-  // Build and update audio node routing chain dynamically
+  // Dynamic Audio Routing Chain
   const updateAudioRouting = () => {
     if (!synthRef.current || !filterRef.current) return;
 
     synthRef.current.disconnect();
     filterRef.current.disconnect();
-    delayRef.current?.disconnect();
     distortionRef.current?.disconnect();
+    bitCrusherRef.current?.disconnect();
+    eqRef.current?.disconnect();
+    autoWahRef.current?.disconnect();
+    chorusRef.current?.disconnect();
+    phaserRef.current?.disconnect();
+    tremoloRef.current?.disconnect();
+    vibratoRef.current?.disconnect();
+    pitchShiftRef.current?.disconnect();
+    delayRef.current?.disconnect();
+    reverbRef.current?.disconnect();
+    stereoWidenerRef.current?.disconnect();
+    limiterRef.current?.disconnect();
 
     let currentNode = synthRef.current;
 
-    // 1. Distortion
     if (enableDistortion && distortionRef.current) {
       distortionRef.current.distortion = distortionAmount;
       currentNode.connect(distortionRef.current);
       currentNode = distortionRef.current;
     }
 
-    // 2. Filter
+    if (enableBitCrusher && bitCrusherRef.current) {
+      bitCrusherRef.current.bits = bitCrusherBits;
+      currentNode.connect(bitCrusherRef.current);
+      currentNode = bitCrusherRef.current;
+    }
+
+    if (eqRef.current) {
+      eqRef.current.low.value = eqLow;
+      eqRef.current.mid.value = eqMid;
+      eqRef.current.high.value = eqHigh;
+      currentNode.connect(eqRef.current);
+      currentNode = eqRef.current;
+    }
+
     if (filterRef.current) {
       filterRef.current.frequency.value = filterCutoff;
+      filterRef.current.type = filterType;
       currentNode.connect(filterRef.current);
       currentNode = filterRef.current;
     }
 
-    // 3. Delay / Echo
+    if (enableAutoWah && autoWahRef.current) {
+      currentNode.connect(autoWahRef.current);
+      currentNode = autoWahRef.current;
+    }
+
+    if (enableChorus && chorusRef.current) {
+      currentNode.connect(chorusRef.current);
+      currentNode = chorusRef.current;
+    }
+
+    if (enablePhaser && phaserRef.current) {
+      currentNode.connect(phaserRef.current);
+      currentNode = phaserRef.current;
+    }
+
+    if (enableTremolo && tremoloRef.current) {
+      currentNode.connect(tremoloRef.current);
+      currentNode = tremoloRef.current;
+    }
+
+    if (enableVibrato && vibratoRef.current) {
+      currentNode.connect(vibratoRef.current);
+      currentNode = vibratoRef.current;
+    }
+
+    if (enablePitchShift && pitchShiftRef.current) {
+      pitchShiftRef.current.pitch = pitchShiftSemitones;
+      currentNode.connect(pitchShiftRef.current);
+      currentNode = pitchShiftRef.current;
+    }
+
     if (enableDelay && delayRef.current) {
       delayRef.current.delayTime.value = delayTime;
       currentNode.connect(delayRef.current);
       currentNode = delayRef.current;
     }
 
-    // Connect to output speakers & recorder stream
-    currentNode.connect(Tone.getDestination());
+    if (enableReverb && reverbRef.current) {
+      reverbRef.current.decay = reverbDecay;
+      currentNode.connect(reverbRef.current);
+      currentNode = reverbRef.current;
+    }
+
+    if (stereoWidenerRef.current) {
+      currentNode.connect(stereoWidenerRef.current);
+      currentNode = stereoWidenerRef.current;
+    }
+
+    if (limiterRef.current) {
+      currentNode.connect(limiterRef.current);
+      currentNode = limiterRef.current;
+    }
+
+    const finalNode = limiterRef.current || currentNode;
+    finalNode.connect(Tone.getDestination());
     if (destRef.current) {
-      currentNode.connect(destRef.current);
+      finalNode.connect(destRef.current);
     }
   };
 
   useEffect(() => {
     updateAudioRouting();
-  }, [enableDelay, delayTime, enableDistortion, distortionAmount, filterCutoff]);
+  }, [
+    filterCutoff, filterType, enableDistortion, distortionAmount,
+    enableBitCrusher, bitCrusherBits, eqLow, eqMid, eqHigh,
+    enableAutoWah, enableChorus, enablePhaser, enableTremolo,
+    enableVibrato, enablePitchShift, pitchShiftSemitones,
+    enableDelay, delayTime, enableReverb, reverbDecay
+  ]);
 
   const handleInstrumentChange = (inst) => {
     setSelectedInstrument(inst);
     setFilterCutoff(inst.filterCutoff);
-    // Re-triggers useEffect to build the exact synth architecture (FM, AM, or standard PolySynth)
   };
 
   const playNote = async (note) => {
@@ -283,14 +424,14 @@ export default function InstrumentPage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Virtual Synth & Instrument Studio</h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Choose from 8 distinct synthesizer engines, tweak audio effects, play notes via your keyboard, and record your performance.
+            Choose from 13 distinct studio instrument presets, route professional audio effects chains, and record live performances.
           </p>
         </div>
 
         {/* Instrument Selector Grid */}
         <div className="space-y-3">
           <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">Select Instrument Preset</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
             {INSTRUMENTS.map((inst) => (
               <button
                 key={inst.id}
@@ -303,7 +444,7 @@ export default function InstrumentPage() {
               >
                 <MusicalNoteIcon className="h-5 w-5 mb-2" />
                 <p className="font-semibold text-sm">{inst.name}</p>
-                <p className="text-xs text-gray-500 capitalize">{inst.type} oscillator</p>
+                <p className="text-xs text-gray-500 capitalize">{inst.type} synthesis</p>
               </button>
             ))}
           </div>
@@ -313,7 +454,7 @@ export default function InstrumentPage() {
         <div className="p-6 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 shadow-sm">
           <div className="flex items-center gap-3">
             <AdjustmentsHorizontalIcon className="h-6 w-6 text-indigo-500" />
-            <h3 className="font-semibold text-lg">Studio Effects Chain</h3>
+            <h3 className="font-semibold text-lg">Pro Effects Rack</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -374,10 +515,60 @@ export default function InstrumentPage() {
                 onChange={(e) => setDelayTime(e.target.value)}
                 className="w-full p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm disabled:opacity-40"
               >
-                <option value="8n">Eighth Note (Fast)</option>
-                <option value="4n">Quarter Note (Standard)</option>
-                <option value="2n">Half Note (Slow)</option>
+                <option value="8n">Eighth Note</option>
+                <option value="4n">Quarter Note</option>
+                <option value="2n">Half Note</option>
               </select>
+            </div>
+
+            {/* Reverb */}
+            <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Hall Reverb</span>
+                <input
+                  type="checkbox"
+                  checked={enableReverb}
+                  onChange={(e) => setEnableReverb(e.target.checked)}
+                  className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                />
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="8.0"
+                step="0.5"
+                value={reverbDecay}
+                disabled={!enableReverb}
+                onChange={(e) => setReverbDecay(Number(e.target.value))}
+                className="w-full accent-indigo-600 cursor-pointer disabled:opacity-40"
+              />
+            </div>
+
+            {/* Modulation Toggles */}
+            <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 md:col-span-2">
+              <span className="text-sm font-medium">Modulation Effects</span>
+              <div className="flex flex-wrap gap-4 pt-1">
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={enableChorus} onChange={(e) => setEnableChorus(e.target.checked)} className="accent-indigo-600 h-4 w-4" />
+                  Chorus
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={enablePhaser} onChange={(e) => setEnablePhaser(e.target.checked)} className="accent-indigo-600 h-4 w-4" />
+                  Phaser
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={enableTremolo} onChange={(e) => setEnableTremolo(e.target.checked)} className="accent-indigo-600 h-4 w-4" />
+                  Tremolo
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={enableVibrato} onChange={(e) => setEnableVibrato(e.target.checked)} className="accent-indigo-600 h-4 w-4" />
+                  Vibrato
+                </label>
+                <label className="flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="checkbox" checked={enableAutoWah} onChange={(e) => setEnableAutoWah(e.target.checked)} className="accent-indigo-600 h-4 w-4" />
+                  Auto-Wah
+                </label>
+              </div>
             </div>
           </div>
         </div>

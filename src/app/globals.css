@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Enable class-based dark/light switching in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-anime-dark: #091540;     /* Deep navy/blue */
+  --color-anime-light: #F2F2F2;    /* Off-white */
+  --color-anime-coral: #D96868;    /* Accent coral */
+  --color-anime-olive: #91AE6E;    /* Muted green */
+  --color-anime-sage: #8BBB92;     /* Light sage green */
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Base styles: Light mode by default, switches when .dark class is absent/present */
+body {
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: #091540;
+}
+
+/* When .dark class is added to <html>, apply deep navy background and light text */
+.dark body {
+  background-color: var(--color-anime-dark);
+  color: var(--color-anime-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}

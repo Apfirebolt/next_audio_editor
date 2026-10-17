@@ -7,14 +7,76 @@ import { MusicalNoteIcon, PlayIcon, StopIcon, ArrowDownTrayIcon, SparklesIcon, A
 import * as Tone from "tone";
 
 const INSTRUMENTS = [
-  { id: "synth", name: "Cyber Synth", type: "sawtooth", filterCutoff: 2000 },
-  { id: "piano", name: "Grand Piano", type: "triangle", filterCutoff: 3500 },
-  { id: "pad", name: "Ambient Pad", type: "sine", filterCutoff: 900 },
-  { id: "pluck", name: "Square Pluck", type: "square", filterCutoff: 2500 },
-  { id: "brass", name: "80s Brass", type: "sawtooth", filterCutoff: 4000 },
-  { id: "flute", name: "Smooth Flute", type: "sine", filterCutoff: 1500 },
-  { id: "bass", name: "Deep Sub Bass", type: "triangle", filterCutoff: 400 },
-  { id: "bell", name: "Lo-Fi Bell", type: "sine", filterCutoff: 5000 },
+  { 
+    id: "synth", 
+    name: "Cyber Synth", 
+    type: "poly", 
+    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 } },
+    filterCutoff: 2500 
+  },
+  { 
+    id: "guitar", 
+    name: "Acoustic Guitar", 
+    type: "fm", 
+    options: { harmonicity: 1.5, modulationIndex: 10, oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.4, sustain: 0.1, release: 0.8 } },
+    filterCutoff: 3000 
+  },
+  { 
+    id: "piano", 
+    name: "Grand Piano", 
+    type: "fm", 
+    options: { harmonicity: 2, modulationIndex: 5, oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.8, sustain: 0.2, release: 1.2 } },
+    filterCutoff: 4000 
+  },
+  { 
+    id: "pad", 
+    name: "Ambient Pad", 
+    type: "am", 
+    options: { harmonicity: 0.5, oscillator: { type: "sine" }, envelope: { attack: 0.8, decay: 1.0, sustain: 0.8, release: 2.0 } },
+    filterCutoff: 1000 
+  },
+  { 
+    id: "organ", 
+    name: "Classic Organ", 
+    type: "poly", 
+    options: { oscillator: { type: "square8" }, envelope: { attack: 0.01, decay: 0.01, sustain: 1.0, release: 0.1 } },
+    filterCutoff: 3500 
+  },
+  { 
+    id: "brass", 
+    name: "80s Brass", 
+    type: "poly", 
+    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.15, decay: 0.3, sustain: 0.6, release: 0.8 } },
+    filterCutoff: 4500 
+  },
+  { 
+    id: "flute", 
+    name: "Smooth Flute", 
+    type: "poly", 
+    options: { oscillator: { type: "sine" }, envelope: { attack: 0.2, decay: 0.1, sustain: 0.9, release: 0.5 } },
+    filterCutoff: 1800 
+  },
+  { 
+    id: "bass", 
+    name: "Deep Sub Bass", 
+    type: "mono", 
+    options: { oscillator: { type: "sine" }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.8, release: 0.4 } },
+    filterCutoff: 400 
+  },
+  { 
+    id: "bell", 
+    name: "Lo-Fi Bell", 
+    type: "fm", 
+    options: { harmonicity: 3.5, modulationIndex: 15, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 1.5, sustain: 0.0, release: 1.5 } },
+    filterCutoff: 6000 
+  },
+  { 
+    id: "pluck", 
+    name: "Square Pluck", 
+    type: "poly", 
+    options: { oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 } },
+    filterCutoff: 2200 
+  }
 ];
 
 const KEYPAD_NOTES = [
@@ -56,10 +118,8 @@ export default function InstrumentPage() {
   const recordedChunksRef = useRef([]);
 
   useEffect(() => {
-    // Setup Audio Destination stream for recording
     destRef.current = Tone.getContext().createMediaStreamDestination();
 
-    // Setup Effects Nodes
     filterRef.current = new Tone.Filter({
       frequency: selectedInstrument.filterCutoff,
       type: "lowpass",
@@ -76,11 +136,14 @@ export default function InstrumentPage() {
       wet: 0.5,
     });
 
-    // Setup Synth Polyphony
-    synthRef.current = new Tone.PolySynth(Tone.Synth, {
-      oscillator: { type: selectedInstrument.type },
-      envelope: { attack: 0.02, decay: 0.1, sustain: 0.4, release: 1 },
-    });
+    // Instantiate correct synth architecture based on instrument preset
+    if (selectedInstrument.type === "fm") {
+      synthRef.current = new Tone.PolySynth(Tone.FMSynth, selectedInstrument.options);
+    } else if (selectedInstrument.type === "am") {
+      synthRef.current = new Tone.PolySynth(Tone.AMSynth, selectedInstrument.options);
+    } else {
+      synthRef.current = new Tone.PolySynth(Tone.Synth, selectedInstrument.options);
+    }
 
     updateAudioRouting();
 
@@ -138,9 +201,7 @@ export default function InstrumentPage() {
   const handleInstrumentChange = (inst) => {
     setSelectedInstrument(inst);
     setFilterCutoff(inst.filterCutoff);
-    if (synthRef.current) {
-      synthRef.current.set({ oscillator: { type: inst.type } });
-    }
+    // Re-triggers useEffect to build the exact synth architecture (FM, AM, or standard PolySynth)
   };
 
   const playNote = async (note) => {

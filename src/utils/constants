@@ -1,0 +1,251 @@
+const INSTRUMENTS = [
+  // --- SYNTH & ELECTRONIC ---
+  { 
+    id: "synth", 
+    name: "Cyber Synth", 
+    type: "poly", 
+    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 } },
+    filterCutoff: 2500 
+  },
+  { 
+    id: "chiptune", 
+    name: "8-Bit Chiptune", 
+    type: "poly", 
+    options: { oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.05, sustain: 0.8, release: 0.05 } },
+    filterCutoff: 5000 
+  },
+  { 
+    id: "pad", 
+    name: "Ambient Pad", 
+    type: "am", 
+    options: { harmonicity: 0.5, oscillator: { type: "sine" }, envelope: { attack: 0.8, decay: 1.0, sustain: 0.8, release: 2.0 } },
+    filterCutoff: 1000 
+  },
+  { 
+    id: "bass", 
+    name: "Deep Sub Bass", 
+    type: "mono", 
+    options: { oscillator: { type: "sine" }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.8, release: 0.4 } },
+    filterCutoff: 400 
+  },
+  { 
+    id: "slap-bass", 
+    name: "Slap Bass", 
+    type: "poly", 
+    options: { oscillator: { type: "triangle8" }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.2, release: 0.3 } },
+    filterCutoff: 1200 
+  },
+  { 
+    id: "pluck", 
+    name: "Square Pluck", 
+    type: "poly", 
+    options: { oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 } },
+    filterCutoff: 2200 
+  },
+
+  // --- ACOUSTIC & STRINGS ---
+  { 
+    id: "guitar", 
+    name: "Acoustic Guitar", 
+    type: "fm", 
+    options: { harmonicity: 1.5, modulationIndex: 10, oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.4, sustain: 0.1, release: 0.8 } },
+    filterCutoff: 3000 
+  },
+  { 
+    id: "elec-guitar", 
+    name: "Electric Guitar", 
+    type: "fm", 
+    options: { harmonicity: 2.0, modulationIndex: 12, oscillator: { type: "sawtooth" }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.3, release: 0.6 } },
+    filterCutoff: 4000 
+  },
+  { 
+    id: "violin", 
+    name: "Orchestral Violin", 
+    type: "poly", 
+    options: { oscillator: { type: "sawtooth8" }, envelope: { attack: 0.2, decay: 0.4, sustain: 0.8, release: 1.0 } },
+    filterCutoff: 3500 
+  },
+  { 
+    id: "cello", 
+    name: "Warm Cello", 
+    type: "am", 
+    options: { harmonicity: 1.0, oscillator: { type: "triangle" }, envelope: { attack: 0.3, decay: 0.5, sustain: 0.9, release: 1.2 } },
+    filterCutoff: 1800 
+  },
+  { 
+    id: "harp", 
+    name: "Concert Harp", 
+    type: "fm", 
+    options: { harmonicity: 3.0, modulationIndex: 5, oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 1.2, sustain: 0.05, release: 1.5 } },
+    filterCutoff: 4500 
+  },
+
+  // --- KEYS & MALLETS ---
+  { 
+    id: "piano", 
+    name: "Grand Piano", 
+    type: "fm", 
+    options: { harmonicity: 2, modulationIndex: 5, oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.8, sustain: 0.2, release: 1.2 } },
+    filterCutoff: 4000 
+  },
+  { 
+    id: "electric-piano", 
+    name: "Rhodes Electric Piano", 
+    type: "am", 
+    options: { harmonicity: 1.0, oscillator: { type: "sine" }, envelope: { attack: 0.02, decay: 0.6, sustain: 0.4, release: 0.9 } },
+    filterCutoff: 3200 
+  },
+  { 
+    id: "organ", 
+    name: "Classic Organ", 
+    type: "poly", 
+    options: { oscillator: { type: "square8" }, envelope: { attack: 0.01, decay: 0.01, sustain: 1.0, release: 0.1 } },
+    filterCutoff: 3500 
+  },
+  { 
+    id: "bell", 
+    name: "Lo-Fi Bell", 
+    type: "fm", 
+    options: { harmonicity: 3.5, modulationIndex: 15, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 1.5, sustain: 0.0, release: 1.5 } },
+    filterCutoff: 6000 
+  },
+  { 
+    id: "marimba", 
+    name: "Wooden Marimba", 
+    type: "fm", 
+    options: { harmonicity: 4.0, modulationIndex: 2, oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.3, sustain: 0.0, release: 0.2 } },
+    filterCutoff: 2800 
+  },
+  { 
+    id: "steel-drum", 
+    name: "Steel Drum", 
+    type: "fm", 
+    options: { harmonicity: 2.7, modulationIndex: 8, oscillator: { type: "triangle" }, envelope: { attack: 0.002, decay: 0.5, sustain: 0.05, release: 0.4 } },
+    filterCutoff: 3500 
+  },
+
+  // --- BRASS & WOODWINDS ---
+  { 
+    id: "brass", 
+    name: "80s Brass", 
+    type: "poly", 
+    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.15, decay: 0.3, sustain: 0.6, release: 0.8 } },
+    filterCutoff: 4500 
+  },
+  { 
+    id: "trumpet", 
+    name: "Jazz Trumpet", 
+    type: "fm", 
+    options: { harmonicity: 1.0, modulationIndex: 14, oscillator: { type: "sawtooth" }, envelope: { attack: 0.08, decay: 0.2, sustain: 0.7, release: 0.4 } },
+    filterCutoff: 5000 
+  },
+  { 
+    id: "saxophone", 
+    name: "Smooth Saxophone", 
+    type: "am", 
+    options: { harmonicity: 2.0, oscillator: { type: "sawtooth" }, envelope: { attack: 0.1, decay: 0.3, sustain: 0.8, release: 0.5 } },
+    filterCutoff: 3800 
+  },
+  { 
+    id: "flute", 
+    name: "Smooth Flute", 
+    type: "poly", 
+    options: { oscillator: { type: "sine" }, envelope: { attack: 0.2, decay: 0.1, sustain: 0.9, release: 0.5 } },
+    filterCutoff: 1800 
+  },
+  { 
+    id: "clarinet", 
+    name: "Woodwind Clarinet", 
+    type: "poly", 
+    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.1, decay: 0.2, sustain: 0.8, release: 0.4 } },
+    filterCutoff: 2400 
+  },
+
+  // --- ETHEREAL & WORLD ---
+  { 
+    id: "kalimba", 
+    name: "African Kalimba", 
+    type: "fm", 
+    options: { harmonicity: 6.0, modulationIndex: 4, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 0.6, sustain: 0.0, release: 0.5 } },
+    filterCutoff: 4000 
+  },
+  { 
+    id: "sitar", 
+    name: "Classical Sitar", 
+    type: "fm", 
+    options: { harmonicity: 1.4, modulationIndex: 18, oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.8, sustain: 0.2, release: 0.8 } },
+    filterCutoff: 4200 
+  }
+];
+
+// 1. Standard 21-Key Musical Layout (Octaves 3 & 4)
+const KEYPAD_NOTES_21 = [
+  { key: "Z", note: "C3", label: "C3" },
+  { key: "S", note: "C#3", label: "C#3" },
+  { key: "X", note: "D3", label: "D3" },
+  { key: "D", note: "D#3", label: "D#3" },
+  { key: "C", note: "E3", label: "E3" },
+  { key: "V", note: "F3", label: "F3" },
+  { key: "G", note: "F#3", label: "F#3" },
+  { key: "B", note: "G3", label: "G3" },
+  { key: "H", note: "G#3", label: "G#3" },
+  { key: "N", note: "A3", label: "A3" },
+  { key: "J", note: "A#3", label: "A#3" },
+  { key: "M", note: "B3", label: "B3" },
+  { key: "Q", note: "C4", label: "C4" },
+  { key: "2", note: "C#4", label: "C#4" },
+  { key: "W", note: "D4", label: "D4" },
+  { key: "3", note: "D#4", label: "D#4" },
+  { key: "E", note: "E4", label: "E4" },
+  { key: "R", note: "F4", label: "F4" },
+  { key: "5", note: "F#4", label: "F#4" },
+  { key: "T", note: "G4", label: "G4" },
+  { key: "6", note: "G#4", label: "G#4" },
+  { key: "Y", note: "A4", label: "A4" },
+  { key: "7", note: "A#4", label: "A#4" },
+  { key: "U", note: "B4", label: "B4" },
+  { key: "I", note: "C5", label: "C5" },
+];
+
+// 2. Expanded 37-Key Professional Studio Layout (Octaves 3, 4, and 5)
+const KEYPAD_NOTES_37 = [
+  { key: "Z", note: "C3", label: "C3" },
+  { key: "S", note: "C#3", label: "C#3" },
+  { key: "X", note: "D3", label: "D3" },
+  { key: "D", note: "D#3", label: "D#3" },
+  { key: "C", note: "E3", label: "E3" },
+  { key: "V", note: "F3", label: "F3" },
+  { key: "G", note: "F#3", label: "F#3" },
+  { key: "B", note: "G3", label: "G3" },
+  { key: "H", note: "G#3", label: "G#3" },
+  { key: "N", note: "A3", label: "A3" },
+  { key: "J", note: "A#3", label: "A#3" },
+  { key: "M", note: "B3", label: "B3" },
+  { key: ",", note: "C4", label: "C4" },
+  { key: "L", note: "C#4", label: "C#4" },
+  { key: ".", note: "D4", label: "D4" },
+  { key: ";", note: "D#4", label: "D#4" },
+  { key: "/", note: "E4", label: "E4" },
+  { key: "Q", note: "F4", label: "F4" },
+  { key: "2", note: "F#4", label: "F#4" },
+  { key: "W", note: "G4", label: "G4" },
+  { key: "3", note: "G#4", label: "G#4" },
+  { key: "E", note: "A4", label: "A4" },
+  { key: "4", note: "A#4", label: "A#4" },
+  { key: "R", note: "B4", label: "B4" },
+  { key: "T", note: "C5", label: "C5" },
+  { key: "6", note: "C#5", label: "C#5" },
+  { key: "Y", note: "D5", label: "D5" },
+  { key: "7", note: "D#5", label: "D#5" },
+  { key: "U", note: "E5", label: "E5" },
+  { key: "I", note: "F5", label: "F5" },
+  { key: "9", note: "F#5", label: "F#5" },
+  { key: "O", note: "G5", label: "G5" },
+  { key: "0", note: "G#5", label: "G#5" },
+  { key: "P", note: "A5", label: "A5" },
+  { key: "-", note: "A#5", label: "A#5" },
+  { key: "[", note: "B5", label: "B5" },
+  { key: "]", note: "C6", label: "C6" },
+];
+
+export { INSTRUMENTS, KEYPAD_NOTES_21, KEYPAD_NOTES_37 };

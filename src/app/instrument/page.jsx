@@ -4,129 +4,22 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import VoiceRecorder from "../../components/VoiceRecorder";
-import VoiceEqualizer from "../../components/VoiceEqualizer"; // <--- Imported Voice EQ Component
+import VoiceEqualizer from "../../components/VoiceEqualizer";
 import { MusicalNoteIcon, PlayIcon, StopIcon, ArrowDownTrayIcon, SparklesIcon, AdjustmentsHorizontalIcon, MicrophoneIcon } from "@heroicons/react/24/outline";
 import * as Tone from "tone";
-
-const INSTRUMENTS = [
-  { 
-    id: "synth", 
-    name: "Cyber Synth", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.2, sustain: 0.5, release: 1 } },
-    filterCutoff: 2500 
-  },
-  { 
-    id: "guitar", 
-    name: "Acoustic Guitar", 
-    type: "fm", 
-    options: { harmonicity: 1.5, modulationIndex: 10, oscillator: { type: "triangle" }, envelope: { attack: 0.005, decay: 0.4, sustain: 0.1, release: 0.8 } },
-    filterCutoff: 3000 
-  },
-  { 
-    id: "elec-guitar", 
-    name: "Electric Guitar", 
-    type: "fm", 
-    options: { harmonicity: 2.0, modulationIndex: 12, oscillator: { type: "sawtooth" }, envelope: { attack: 0.02, decay: 0.4, sustain: 0.3, release: 0.6 } },
-    filterCutoff: 4000 
-  },
-  { 
-    id: "steel-drum", 
-    name: "Steel Drum", 
-    type: "fm", 
-    options: { harmonicity: 2.7, modulationIndex: 8, oscillator: { type: "triangle" }, envelope: { attack: 0.002, decay: 0.5, sustain: 0.05, release: 0.4 } },
-    filterCutoff: 3500 
-  },
-  { 
-    id: "slap-bass", 
-    name: "Slap Bass", 
-    type: "poly", 
-    options: { oscillator: { type: "triangle8" }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.2, release: 0.3 } },
-    filterCutoff: 1200 
-  },
-  { 
-    id: "piano", 
-    name: "Grand Piano", 
-    type: "fm", 
-    options: { harmonicity: 2, modulationIndex: 5, oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.8, sustain: 0.2, release: 1.2 } },
-    filterCutoff: 4000 
-  },
-  { 
-    id: "pad", 
-    name: "Ambient Pad", 
-    type: "am", 
-    options: { harmonicity: 0.5, oscillator: { type: "sine" }, envelope: { attack: 0.8, decay: 1.0, sustain: 0.8, release: 2.0 } },
-    filterCutoff: 1000 
-  },
-  { 
-    id: "organ", 
-    name: "Classic Organ", 
-    type: "poly", 
-    options: { oscillator: { type: "square8" }, envelope: { attack: 0.01, decay: 0.01, sustain: 1.0, release: 0.1 } },
-    filterCutoff: 3500 
-  },
-  { 
-    id: "brass", 
-    name: "80s Brass", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.15, decay: 0.3, sustain: 0.6, release: 0.8 } },
-    filterCutoff: 4500 
-  },
-  { 
-    id: "flute", 
-    name: "Smooth Flute", 
-    type: "poly", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.2, decay: 0.1, sustain: 0.9, release: 0.5 } },
-    filterCutoff: 1800 
-  },
-  { 
-    id: "bass", 
-    name: "Deep Sub Bass", 
-    type: "mono", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.02, decay: 0.1, sustain: 0.8, release: 0.4 } },
-    filterCutoff: 400 
-  },
-  { 
-    id: "bell", 
-    name: "Lo-Fi Bell", 
-    type: "fm", 
-    options: { harmonicity: 3.5, modulationIndex: 15, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 1.5, sustain: 0.0, release: 1.5 } },
-    filterCutoff: 6000 
-  },
-  { 
-    id: "pluck", 
-    name: "Square Pluck", 
-    type: "poly", 
-    options: { oscillator: { type: "square" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 } },
-    filterCutoff: 2200 
-  }
-];
-
-const KEYPAD_NOTES = [
-  { key: "A", note: "C4", label: "C4" },
-  { key: "W", note: "C#4", label: "C#4" },
-  { key: "S", note: "D4", label: "D4" },
-  { key: "E", note: "D#4", label: "D#4" },
-  { key: "D", note: "E4", label: "E4" },
-  { key: "F", note: "F4", label: "F4" },
-  { key: "T", note: "F#4", label: "F#4" },
-  { key: "G", note: "G4", label: "G4" },
-  { key: "Y", note: "G#4", label: "G#4" },
-  { key: "H", note: "A4", label: "A4" },
-  { key: "U", note: "A#4", label: "A#4" },
-  { key: "J", note: "B4", label: "B4" },
-  { key: "K", note: "C5", label: "C5" },
-];
+import { INSTRUMENTS, KEYPAD_NOTES_21, KEYPAD_NOTES_37 } from "../../utils/constants";
 
 export default function InstrumentPage() {
-  const [activeTab, setActiveTab] = useState("synth"); // "synth" or "mic"
+  const [activeTab, setActiveTab] = useState("synth");
+  const [keyboardMode, setKeyboardMode] = useState("21"); // "21" or "37"
+
+  const activeKeypad = keyboardMode === "37" ? KEYPAD_NOTES_37 : KEYPAD_NOTES_21;
 
   const [selectedInstrument, setSelectedInstrument] = useState(INSTRUMENTS[0]);
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlobUrl, setRecordedBlobUrl] = useState(null);
   const [activeNotes, setActiveNotes] = useState({});
 
-  // Shared state to catch recorded mic URL from VoiceRecorder component
   const [latestMicAudioUrl, setLatestMicAudioUrl] = useState(null);
 
   const [filterCutoff, setFilterCutoff] = useState(selectedInstrument.filterCutoff);
@@ -137,22 +30,12 @@ export default function InstrumentPage() {
   const [delayTime, setDelayTime] = useState("8n");
   const [enableReverb, setEnableReverb] = useState(false);
   const [reverbDecay, setReverbDecay] = useState(2.5);
-  const [enableChorus, setEnableChorus] = useState(false);
-  const [enablePhaser, setEnablePhaser] = useState(false);
-  const [enableTremolo, setEnableTremolo] = useState(false);
-  const [enableVibrato, setEnableVibrato] = useState(false);
-  const [enableAutoWah, setEnableAutoWah] = useState(false);
 
   const synthRef = useRef(null);
   const filterRef = useRef(null);
   const distortionRef = useRef(null);
   const delayRef = useRef(null);
   const reverbRef = useRef(null);
-  const chorusRef = useRef(null);
-  const phaserRef = useRef(null);
-  const tremoloRef = useRef(null);
-  const vibratoRef = useRef(null);
-  const autoWahRef = useRef(null);
   const limiterRef = useRef(null);
 
   const destRef = useRef(null);
@@ -166,11 +49,6 @@ export default function InstrumentPage() {
     distortionRef.current = new Tone.Distortion({ distortion: 0.2, wet: 0.5 });
     delayRef.current = new Tone.FeedbackDelay({ delayTime: "8n", feedback: 0.3, wet: 0.4 });
     reverbRef.current = new Tone.Reverb({ decay: 2.5, wet: 0.4 });
-    chorusRef.current = new Tone.Chorus({ frequency: 4, delayTime: 2.5, depth: 0.5, wet: 0.5 });
-    phaserRef.current = new Tone.Phaser({ frequency: 0.5, octaves: 3, baseFrequency: 350, wet: 0.4 });
-    tremoloRef.current = new Tone.Tremolo({ frequency: 5, depth: 0.7, wet: 0.5 }).start();
-    vibratoRef.current = new Tone.Vibrato({ frequency: 5, depth: 0.2, wet: 0.5 });
-    autoWahRef.current = new Tone.AutoWah({ baseFrequency: 150, octaves: 6, wet: 0.5 });
     limiterRef.current = new Tone.Limiter(-1);
 
     if (selectedInstrument.type === "fm") {
@@ -189,11 +67,6 @@ export default function InstrumentPage() {
       distortionRef.current?.dispose();
       delayRef.current?.dispose();
       reverbRef.current?.dispose();
-      chorusRef.current?.dispose();
-      phaserRef.current?.dispose();
-      tremoloRef.current?.dispose();
-      vibratoRef.current?.dispose();
-      autoWahRef.current?.dispose();
       limiterRef.current?.dispose();
     };
   }, [selectedInstrument]);
@@ -206,11 +79,6 @@ export default function InstrumentPage() {
     distortionRef.current?.disconnect();
     delayRef.current?.disconnect();
     reverbRef.current?.disconnect();
-    chorusRef.current?.disconnect();
-    phaserRef.current?.disconnect();
-    tremoloRef.current?.disconnect();
-    vibratoRef.current?.disconnect();
-    autoWahRef.current?.disconnect();
     limiterRef.current?.disconnect();
 
     let currentNode = synthRef.current;
@@ -226,31 +94,6 @@ export default function InstrumentPage() {
       filterRef.current.type = filterType;
       currentNode.connect(filterRef.current);
       currentNode = filterRef.current;
-    }
-
-    if (enableAutoWah && autoWahRef.current) {
-      currentNode.connect(autoWahRef.current);
-      currentNode = autoWahRef.current;
-    }
-
-    if (enableChorus && chorusRef.current) {
-      currentNode.connect(chorusRef.current);
-      currentNode = chorusRef.current;
-    }
-
-    if (enablePhaser && phaserRef.current) {
-      currentNode.connect(phaserRef.current);
-      currentNode = phaserRef.current;
-    }
-
-    if (enableTremolo && tremoloRef.current) {
-      currentNode.connect(tremoloRef.current);
-      currentNode = tremoloRef.current;
-    }
-
-    if (enableVibrato && vibratoRef.current) {
-      currentNode.connect(vibratoRef.current);
-      currentNode = vibratoRef.current;
     }
 
     if (enableDelay && delayRef.current) {
@@ -279,11 +122,7 @@ export default function InstrumentPage() {
 
   useEffect(() => {
     updateAudioRouting();
-  }, [
-    filterCutoff, filterType, enableDistortion, distortionAmount,
-    enableAutoWah, enableChorus, enablePhaser, enableTremolo,
-    enableVibrato, enableDelay, delayTime, enableReverb, reverbDecay
-  ]);
+  }, [filterCutoff, filterType, enableDistortion, distortionAmount, enableDelay, delayTime, enableReverb, reverbDecay]);
 
   const handleInstrumentChange = (inst) => {
     setSelectedInstrument(inst);
@@ -305,16 +144,17 @@ export default function InstrumentPage() {
     }
   };
 
+  // Keyboard Event Listeners bound dynamically to active keypad layout
   useEffect(() => {
     const handleKeyDown = (e) => {
-      const found = KEYPAD_NOTES.find((k) => k.key === e.key.toUpperCase());
+      const found = activeKeypad.find((k) => k.key === e.key.toUpperCase());
       if (found && !activeNotes[found.note]) {
         playNote(found.note);
       }
     };
 
     const handleKeyUp = (e) => {
-      const found = KEYPAD_NOTES.find((k) => k.key === e.key.toUpperCase());
+      const found = activeKeypad.find((k) => k.key === e.key.toUpperCase());
       if (found) {
         stopNote(found.note);
       }
@@ -327,7 +167,7 @@ export default function InstrumentPage() {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [activeNotes]);
+  }, [activeNotes, activeKeypad]);
 
   const startRecording = () => {
     if (!destRef.current) return;
@@ -364,12 +204,12 @@ export default function InstrumentPage() {
     <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 flex flex-col font-sans">
       <Header />
 
-      <main className="flex-grow max-w-6xl mx-auto w-full px-6 py-12 space-y-8">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12 space-y-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Virtual Synth & Voice Studio</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Play virtual instruments with effects chains or record and equalize vocals using your system microphone.
+              Play virtual instruments across customizable keyboard layouts, route effects, or record and equalize vocals.
             </p>
           </div>
 
@@ -398,7 +238,7 @@ export default function InstrumentPage() {
           <div className="space-y-8">
             <div className="space-y-3">
               <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">Select Instrument Preset</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
                 {INSTRUMENTS.map((inst) => (
                   <button
                     key={inst.id}
@@ -410,13 +250,14 @@ export default function InstrumentPage() {
                     }`}
                   >
                     <MusicalNoteIcon className="h-5 w-5 mb-2" />
-                    <p className="font-semibold text-sm">{inst.name}</p>
+                    <p className="font-semibold text-sm truncate">{inst.name}</p>
                     <p className="text-xs text-gray-500 capitalize">{inst.type} synthesis</p>
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Effects Rack */}
             <div className="p-6 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <AdjustmentsHorizontalIcon className="h-6 w-6 text-indigo-500" />
@@ -486,6 +327,7 @@ export default function InstrumentPage() {
               </div>
             </div>
 
+            {/* Performance Capture */}
             <div className="flex flex-wrap items-center justify-between p-6 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 shadow-sm gap-4">
               <div className="flex items-center gap-3">
                 <SparklesIcon className="h-6 w-6 text-indigo-500" />
@@ -533,12 +375,44 @@ export default function InstrumentPage() {
               </div>
             )}
 
-            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 text-center shadow-sm">
-              <h3 className="font-semibold text-lg">Interactive Music Keypad</h3>
-              <p className="text-xs text-gray-500">Play using your computer keyboard [A, S, D, F, G, H, J, K] for natural keys and [W, E, T, Y, U] for accidentals.</p>
+            {/* Interactive Keypad with Layout Switcher */}
+            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+                <div>
+                  <h3 className="font-semibold text-lg">Interactive Studio Keypad</h3>
+                  <p className="text-xs text-gray-500">
+                    {keyboardMode === "21" 
+                      ? "Standard 21-Key Layout (Octaves 3 & 4)" 
+                      : "Expanded 37-Key Professional Studio Layout (Octaves 3, 4 & 5)"}
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-7 sm:grid-cols-13 gap-2 max-w-4xl mx-auto">
-                {KEYPAD_NOTES.map((k) => (
+                {/* Keyboard Layout Toggle Switch */}
+                <div className="flex p-1 rounded-xl bg-gray-100 dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
+                  <button
+                    onClick={() => setKeyboardMode("21")}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      keyboardMode === "21" ? "bg-indigo-600 text-white shadow-md" : "text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
+                    21-Key Standard
+                  </button>
+                  <button
+                    onClick={() => setKeyboardMode("37")}
+                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      keyboardMode === "37" ? "bg-indigo-600 text-white shadow-md" : "text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
+                    37-Key Pro
+                  </button>
+                </div>
+              </div>
+
+              {/* Keypad Grid */}
+              <div className={`grid gap-1.5 max-w-7xl mx-auto overflow-x-auto pb-2 ${
+                keyboardMode === "37" ? "grid-cols-12 sm:grid-cols-37" : "grid-cols-7 sm:grid-cols-25"
+              }`}>
+                {activeKeypad.map((k) => (
                   <button
                     key={k.note}
                     onMouseDown={() => playNote(k.note)}
@@ -546,7 +420,7 @@ export default function InstrumentPage() {
                     onMouseLeave={() => stopNote(k.note)}
                     onTouchStart={() => playNote(k.note)}
                     onTouchEnd={() => stopNote(k.note)}
-                    className={`h-36 rounded-xl border flex flex-col items-center justify-between p-3 transition-all select-none ${
+                    className={`h-32 rounded-lg border flex flex-col items-center justify-between p-2 transition-all select-none min-w-[32px] ${
                       k.note.includes("#")
                         ? "bg-gray-900 text-gray-200 border-gray-700"
                         : "bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-800 text-gray-800 dark:text-gray-200"
@@ -554,10 +428,10 @@ export default function InstrumentPage() {
                       activeNotes[k.note] ? "!bg-indigo-600 !text-white !border-indigo-500 scale-95 shadow-inner" : "hover:border-indigo-500"
                     }`}
                   >
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                    <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                       {k.key}
                     </span>
-                    <span className="font-bold text-xs sm:text-sm font-mono">{k.label}</span>
+                    <span className="font-bold text-[10px] sm:text-[11px] font-mono">{k.label}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-40"></span>
                   </button>
                 ))}
@@ -566,13 +440,11 @@ export default function InstrumentPage() {
           </div>
         )}
 
-        {/* TAB 2: VOICE RECORDER & GRANULAR EQUALIZER SUITE */}
+        {/* TAB 2: VOICE STUDIO */}
         {activeTab === "mic" && (
           <div className="space-y-8 animate-fadeIn">
-            {/* Voice Recorder Component (pass a callback to track recorded audio URL) */}
             <VoiceRecorder onRecordingComplete={(url) => setLatestMicAudioUrl(url)} />
 
-            {/* Granular Voice Equalizer Component */}
             <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
               <div className="max-w-3xl mx-auto mb-4 text-center">
                 <h4 className="font-bold text-lg">Post-Production Voice Mixing</h4>

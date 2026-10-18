@@ -11,7 +11,9 @@ import {
   SignalIcon,
   PauseIcon,
   PlayIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  SparklesIcon,
+  MusicalNoteIcon
 } from "@heroicons/react/24/outline";
 
 export default function VoiceRecorder({ onRecordingComplete }) {
@@ -22,11 +24,11 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   const [recordingTime, setRecordingTime] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // New Feature: Audio Input Devices List
+  // Audio Input Devices List
   const [audioDevices, setAudioDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
 
-  // New Feature: Live VU Meter Level (0 to 100)
+  // Live VU Meter Level (0 to 100)
   const [audioLevel, setAudioLevel] = useState(0);
 
   // Advanced Studio Settings
@@ -36,6 +38,15 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   const [noiseSuppression, setNoiseSuppression] = useState(true);
   const [echoCancellation, setEchoCancellation] = useState(true);
   const [autoGainControl, setAutoGainControl] = useState(true);
+
+  // --- NEW FEATURE: Professional Voice Effects Rack State ---
+  const [showEffects, setShowEffects] = useState(false);
+  const [enablePitchShift, setEnablePitchShift] = useState(false);
+  const [pitchSemitones, setPitchSemitones] = useState(0); // -12 to +12
+  const [enableDrive, setEnableDrive] = useState(false);
+  const [driveAmount, setDriveAmount] = useState(0.3); // 0 to 1
+  const [enableRadio, setEnableRadio] = useState(false); // Lo-Fi telephone/radio filter
+  const [enableChorus, setEnableChorus] = useState(false);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -172,8 +183,7 @@ export default function VoiceRecorder({ onRecordingComplete }) {
         }
         stream.getTracks().forEach((track) => track.stop());
         
-        // Cleanup Audio Context
-        if (audioContextRef.current) {
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
           audioContextRef.current.close();
         }
         cancelAnimationFrame(animationFrameRef.current);
@@ -190,7 +200,6 @@ export default function VoiceRecorder({ onRecordingComplete }) {
     }
   };
 
-  // Pause Recording Feature
   const pauseRecording = () => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
       mediaRecorderRef.current.pause();
@@ -198,7 +207,6 @@ export default function VoiceRecorder({ onRecordingComplete }) {
     }
   };
 
-  // Resume Recording Feature
   const resumeRecording = () => {
     if (mediaRecorderRef.current && isRecording && isPaused) {
       mediaRecorderRef.current.resume();
@@ -224,23 +232,38 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   return (
     <div className="max-w-2xl mx-auto p-8 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 shadow-xl space-y-6" data-aos="fade-up">
       
-      {/* Header & Advanced Drawer Toggle */}
-      <div className="flex items-center justify-between border-b border-tertiary/20 pb-4">
+      {/* Header & Drawers Toggles */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-tertiary/20 pb-4">
         <div>
           <h3 className="font-bold text-xl tracking-tight font-heading">Studio Voice Channel</h3>
           <p className="text-xs text-dark/60 dark:text-light/60 font-sans">Pro-grade browser audio capture with stream encoding.</p>
         </div>
-        <button
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className={`p-2.5 rounded-xl border transition-all flex items-center gap-2 text-xs font-bold ${
-            showAdvanced 
-              ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
-              : "bg-light dark:bg-dark/80 border-tertiary/30 text-dark/70 dark:text-light/70 hover:border-primary"
-          }`}
-        >
-          <AdjustmentsHorizontalIcon className="h-4 w-4" />
-          <span>{showAdvanced ? "Hide Hardware DSP" : "Hardware DSP & Formats"}</span>
-        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setShowEffects(!showEffects); if (showAdvanced) setShowAdvanced(false); }}
+            className={`p-2.5 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+              showEffects 
+                ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
+                : "bg-light dark:bg-dark/80 border-tertiary/30 text-dark/70 dark:text-light/70 hover:border-primary"
+            }`}
+          >
+            <SparklesIcon className="h-4 w-4" />
+            <span>{showEffects ? "Hide FX Rack" : "Voice Effects"}</span>
+          </button>
+
+          <button
+            onClick={() => { setShowAdvanced(!showAdvanced); if (showEffects) setShowEffects(false); }}
+            className={`p-2.5 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+              showAdvanced 
+                ? "bg-primary text-white border-primary shadow-md shadow-primary/20" 
+                : "bg-light dark:bg-dark/80 border-tertiary/30 text-dark/70 dark:text-light/70 hover:border-primary"
+            }`}
+          >
+            <AdjustmentsHorizontalIcon className="h-4 w-4" />
+            <span>{showAdvanced ? "Hide Hardware DSP" : "Hardware & Formats"}</span>
+          </button>
+        </div>
       </div>
 
       {errorMessage && (
@@ -249,11 +272,111 @@ export default function VoiceRecorder({ onRecordingComplete }) {
         </div>
       )}
 
+      {/* --- NEW FEATURE: Professional Voice Effects Rack Drawer --- */}
+      {showEffects && (
+        <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn font-sans">
+          <div className="flex items-center justify-between border-b border-tertiary/20 pb-2">
+            <span className="text-xs font-bold text-primary font-heading uppercase tracking-wider flex items-center gap-1.5">
+              <MusicalNoteIcon className="h-4 w-4" />
+              Live Vocal Processing FX Rack
+            </span>
+            <span className="text-[10px] text-dark/50 dark:text-light/50">Post-Recording DSP & Modulation</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            {/* Pitch Modulation */}
+            <div className="p-3.5 rounded-xl bg-white dark:bg-dark border border-tertiary/20 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold font-heading">Pitch Shift</label>
+                <input 
+                  type="checkbox" 
+                  checked={enablePitchShift} 
+                  onChange={(e) => setEnablePitchShift(e.target.checked)}
+                  className="accent-primary h-4 w-4 rounded cursor-pointer"
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] text-dark/50 dark:text-light/50 font-mono">
+                  <span>Semitones</span>
+                  <span className="text-primary font-bold">{pitchSemitones > 0 ? `+${pitchSemitones}` : pitchSemitones} st</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="-12" 
+                  max="12" 
+                  step="1" 
+                  value={pitchSemitones}
+                  disabled={!enablePitchShift}
+                  onChange={(e) => setPitchSemitones(parseInt(e.target.value))}
+                  className="w-full accent-primary cursor-pointer disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+            {/* Tube Saturation / Warm Drive */}
+            <div className="p-3.5 rounded-xl bg-white dark:bg-dark border border-tertiary/20 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold font-heading">Tube Saturation</label>
+                <input 
+                  type="checkbox" 
+                  checked={enableDrive} 
+                  onChange={(e) => setEnableDrive(e.target.checked)}
+                  className="accent-primary h-4 w-4 rounded cursor-pointer"
+                />
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between text-[11px] text-dark/50 dark:text-light/50 font-mono">
+                  <span>Drive Amount</span>
+                  <span className="text-primary font-bold">{Math.round(driveAmount * 100)}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0.1" 
+                  max="1" 
+                  step="0.05" 
+                  value={driveAmount}
+                  disabled={!enableDrive}
+                  onChange={(e) => setDriveAmount(parseFloat(e.target.value))}
+                  className="w-full accent-primary cursor-pointer disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Quick Voice Effect Presets */}
+          <div className="pt-2 border-t border-tertiary/20 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-dark/50 dark:text-light/50 uppercase">Quick FX Presets:</span>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { setEnablePitchShift(true); setPitchSemitones(4); setEnableDrive(false); }}
+                className="px-2.5 py-1 rounded-lg bg-light dark:bg-dark/90 border border-tertiary/30 text-[11px] font-bold hover:border-primary transition-all"
+              >
+                Chipmunk (+4st)
+              </button>
+              <button 
+                onClick={() => { setEnablePitchShift(true); setPitchSemitones(-5); setEnableDrive(true); setDriveAmount(0.6); }}
+                className="px-2.5 py-1 rounded-lg bg-light dark:bg-dark/90 border border-tertiary/30 text-[11px] font-bold hover:border-primary transition-all"
+              >
+                Deep Radio (-5st)
+              </button>
+              <button 
+                onClick={() => { setEnablePitchShift(false); setEnableDrive(false); }}
+                className="px-2.5 py-1 rounded-lg bg-danger/10 text-danger border border-danger/20 text-[11px] font-bold hover:bg-danger/20 transition-all"
+              >
+                Reset FX
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Advanced Studio Configuration Drawer */}
       {showAdvanced && (
         <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn">
           
-          {/* New Feature: Microphone Hardware Device Picker */}
+          {/* Microphone Hardware Device Picker */}
           <div className="space-y-1.5 pb-2 border-b border-tertiary/20">
             <label className="text-[11px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider flex items-center gap-1.5 font-heading">
               <Cog6ToothIcon className="h-3.5 w-3.5 text-primary" />
@@ -369,7 +492,7 @@ export default function VoiceRecorder({ onRecordingComplete }) {
           </div>
         </div>
 
-        {/* New Feature: Real-time VU Audio Level Bar */}
+        {/* Real-time VU Audio Level Bar */}
         {isRecording && (
           <div className="w-48 space-y-1">
             <div className="flex justify-between text-[10px] font-mono text-dark/50 dark:text-light/50 uppercase">

@@ -19,7 +19,7 @@ import {
   SpeakerXMarkIcon,
   ArrowDownTrayIcon,
   ShieldCheckIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import * as Tone from "tone";
 
@@ -90,9 +90,14 @@ function audioBufferToWav(buffer) {
 }
 
 // Real-time encode AudioBuffer to WebM, OGG, or MP4 using MediaRecorder with accelerated playback
-async function encodeAudioBufferWithMediaRecorder(buffer, mimeType, bitrate = 192000, onProgress = () => {}) {
+async function encodeAudioBufferWithMediaRecorder(
+  buffer,
+  mimeType,
+  bitrate = 192000,
+  onProgress = () => {},
+) {
   const offlineCtx = new (window.AudioContext || window.webkitAudioContext)({
-    sampleRate: buffer.sampleRate
+    sampleRate: buffer.sampleRate,
   });
   const sourceNode = offlineCtx.createBufferSource();
   sourceNode.buffer = buffer;
@@ -133,7 +138,10 @@ async function encodeAudioBufferWithMediaRecorder(buffer, mimeType, bitrate = 19
   const startTime = Date.now();
   const progressTimer = setInterval(() => {
     const elapsed = (Date.now() - startTime) / 1000;
-    const pct = Math.min(95, Math.round((elapsed / Math.max(0.1, durationSec)) * 100));
+    const pct = Math.min(
+      95,
+      Math.round((elapsed / Math.max(0.1, durationSec)) * 100),
+    );
     onProgress(pct);
   }, 200);
 
@@ -276,76 +284,76 @@ export default function AudioEditorPage() {
     // Initialize Tone.js Effects Chain Nodes
     noiseGateRef.current = new Tone.Gate({
       threshold: noiseGateThreshold,
-      smoothing: noiseSmoothing
+      smoothing: noiseSmoothing,
     });
 
     rumbleFilterRef.current = new Tone.Filter({
       frequency: 75,
       type: "highpass",
-      rolloff: -12
+      rolloff: -12,
     });
 
     compressorRef.current = new Tone.Compressor({
       threshold: compressorThreshold,
       ratio: 4,
       attack: 0.003,
-      release: 0.25
+      release: 0.25,
     });
 
     eqRef.current = new Tone.EQ3({
       low: eqLow,
       mid: eqMid,
-      high: eqHigh
+      high: eqHigh,
     });
 
     pitchShiftRef.current = new Tone.PitchShift({
       pitch: pitchShift,
-      windowSize: 0.1
+      windowSize: 0.1,
     });
 
     reverbRef.current = new Tone.Reverb({
       decay: reverbDecay,
-      wet: reverbWet
+      wet: reverbWet,
     });
 
     delayRef.current = new Tone.FeedbackDelay({
       delayTime: delayTime,
       feedback: delayFeedback,
-      wet: 0.35
+      wet: 0.35,
     });
 
     distortionRef.current = new Tone.Distortion({
       distortion: distortionAmount,
-      wet: 0.4
+      wet: 0.4,
     });
 
     chorusRef.current = new Tone.Chorus({
       frequency: 1.5,
       delayTime: 3.5,
       depth: chorusDepth,
-      wet: 0.5
+      wet: 0.5,
     }).start();
 
     phaserRef.current = new Tone.Phaser({
       frequency: phaserFreq,
       octaves: 3,
       baseFrequency: 350,
-      wet: 0.5
+      wet: 0.5,
     });
 
     tremoloRef.current = new Tone.Tremolo({
       frequency: tremoloFreq,
       depth: 0.7,
-      wet: 0.5
+      wet: 0.5,
     }).start();
 
     bitCrusherRef.current = new Tone.BitCrusher({
       bits: bitCrusherBits,
-      wet: 0.5
+      wet: 0.5,
     });
 
     widenerRef.current = new Tone.StereoWidener({
-      width: widenerWidth
+      width: widenerWidth,
     });
 
     volumeRef.current = new Tone.Volume(masterVolume);
@@ -384,7 +392,9 @@ export default function AudioEditorPage() {
 
       const rawCtx = Tone.getContext().rawContext;
       const currentAudioTime = rawCtx ? rawCtx.currentTime : Tone.now();
-      const elapsed = (currentAudioTime - playheadStartAudioTimeRef.current) * (playerRef.current?.playbackRate || 1);
+      const elapsed =
+        (currentAudioTime - playheadStartAudioTimeRef.current) *
+        (playerRef.current?.playbackRate || 1);
       const totalDur = durationRef.current;
 
       if (totalDur > 0) {
@@ -432,7 +442,9 @@ export default function AudioEditorPage() {
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
 
     if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
-      setErrorMessage(`Invalid file format (.${fileExt}). Please upload a valid audio file.`);
+      setErrorMessage(
+        `Invalid file format (.${fileExt}). Please upload a valid audio file.`,
+      );
       return;
     }
 
@@ -447,7 +459,8 @@ export default function AudioEditorPage() {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const audioCtx = Tone.getContext();
-      const audioBuffer = await audioCtx.rawContext.decodeAudioData(arrayBuffer);
+      const audioBuffer =
+        await audioCtx.rawContext.decodeAudioData(arrayBuffer);
 
       setDecodedBuffer(audioBuffer);
       setDuration(audioBuffer.duration);
@@ -470,13 +483,14 @@ export default function AudioEditorPage() {
       };
 
       playerRef.current = player;
-      
+
       // Build the routing chain: Player -> Effects -> Destination
       updateEffectChain();
-
     } catch (err) {
       console.error("Error decoding audio file:", err);
-      setErrorMessage("Failed to decode audio file. The file might be corrupted.");
+      setErrorMessage(
+        "Failed to decode audio file. The file might be corrupted.",
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -630,7 +644,7 @@ export default function AudioEditorPage() {
     bitCrusherBits,
     enableWidener,
     widenerWidth,
-    masterVolume
+    masterVolume,
   ]);
 
   // Start playback at specific time offset
@@ -647,11 +661,17 @@ export default function AudioEditorPage() {
     }
 
     const rawCtx = Tone.getContext().rawContext;
-    playheadStartAudioTimeRef.current = rawCtx ? rawCtx.currentTime : Tone.now();
+    playheadStartAudioTimeRef.current = rawCtx
+      ? rawCtx.currentTime
+      : Tone.now();
     playheadStartOffsetRef.current = clampedOffset;
 
     const remaining = Math.max(0.01, durationRef.current - clampedOffset);
-    playerRef.current.start(undefined, clampedOffset, isLoopingRef.current ? undefined : remaining);
+    playerRef.current.start(
+      undefined,
+      clampedOffset,
+      isLoopingRef.current ? undefined : remaining,
+    );
     setIsPlaying(true);
     isPlayingRef.current = true;
     startTracking();
@@ -744,158 +764,165 @@ export default function AudioEditorPage() {
       setExportStatusText("Applying studio effects chain...");
 
       // Tone.Offline executes all scheduling synchronously and renders faster than real-time
-      const renderedToneBuffer = await Tone.Offline(async () => {
-        const offlinePlayer = new Tone.Player(decodedBuffer);
-        offlinePlayer.playbackRate = playbackRate;
+      const renderedToneBuffer = await Tone.Offline(
+        async () => {
+          const offlinePlayer = new Tone.Player(decodedBuffer);
+          offlinePlayer.playbackRate = playbackRate;
 
-        let node = offlinePlayer;
+          let node = offlinePlayer;
 
-        // 0. Intelligent Noise Gate & Rumble Filter
-        if (enableNoiseCancel) {
-          const offlineRumble = new Tone.Filter({
-            frequency: 75,
-            type: "highpass",
-            rolloff: -12
-          });
-          const offlineGate = new Tone.Gate({
-            threshold: noiseGateThreshold,
-            smoothing: noiseSmoothing
-          });
-          node.connect(offlineRumble);
-          offlineRumble.connect(offlineGate);
-          node = offlineGate;
-        }
+          // 0. Intelligent Noise Gate & Rumble Filter
+          if (enableNoiseCancel) {
+            const offlineRumble = new Tone.Filter({
+              frequency: 75,
+              type: "highpass",
+              rolloff: -12,
+            });
+            const offlineGate = new Tone.Gate({
+              threshold: noiseGateThreshold,
+              smoothing: noiseSmoothing,
+            });
+            node.connect(offlineRumble);
+            offlineRumble.connect(offlineGate);
+            node = offlineGate;
+          }
 
-        // 1. Pitch Shift
-        if (pitchShift !== 0) {
-          const offlinePitch = new Tone.PitchShift({
-            pitch: pitchShift,
-            windowSize: 0.1
-          });
-          node.connect(offlinePitch);
-          node = offlinePitch;
-        }
+          // 1. Pitch Shift
+          if (pitchShift !== 0) {
+            const offlinePitch = new Tone.PitchShift({
+              pitch: pitchShift,
+              windowSize: 0.1,
+            });
+            node.connect(offlinePitch);
+            node = offlinePitch;
+          }
 
-        // 2. EQ
-        if (enableEQ) {
-          const offlineEQ = new Tone.EQ3({
-            low: eqLow,
-            mid: eqMid,
-            high: vocalPresence ? eqHigh + 6 : eqHigh
-          });
-          node.connect(offlineEQ);
-          node = offlineEQ;
-        }
+          // 2. EQ
+          if (enableEQ) {
+            const offlineEQ = new Tone.EQ3({
+              low: eqLow,
+              mid: eqMid,
+              high: vocalPresence ? eqHigh + 6 : eqHigh,
+            });
+            node.connect(offlineEQ);
+            node = offlineEQ;
+          }
 
-        // 3. Distortion
-        if (enableDistortion) {
-          const offlineDist = new Tone.Distortion({
-            distortion: distortionAmount,
-            wet: 0.4
-          });
-          node.connect(offlineDist);
-          node = offlineDist;
-        }
+          // 3. Distortion
+          if (enableDistortion) {
+            const offlineDist = new Tone.Distortion({
+              distortion: distortionAmount,
+              wet: 0.4,
+            });
+            node.connect(offlineDist);
+            node = offlineDist;
+          }
 
-        // 4. BitCrusher
-        if (enableBitCrusher) {
-          const offlineCrush = new Tone.BitCrusher({
-            bits: bitCrusherBits,
-            wet: 0.5
-          });
-          node.connect(offlineCrush);
-          node = offlineCrush;
-        }
+          // 4. BitCrusher
+          if (enableBitCrusher) {
+            const offlineCrush = new Tone.BitCrusher({
+              bits: bitCrusherBits,
+              wet: 0.5,
+            });
+            node.connect(offlineCrush);
+            node = offlineCrush;
+          }
 
-        // 5. Compressor
-        if (enableCompressor) {
-          const offlineComp = new Tone.Compressor({
-            threshold: compressorThreshold,
-            ratio: 4,
-            attack: 0.003,
-            release: 0.25
-          });
-          node.connect(offlineComp);
-          node = offlineComp;
-        }
+          // 5. Compressor
+          if (enableCompressor) {
+            const offlineComp = new Tone.Compressor({
+              threshold: compressorThreshold,
+              ratio: 4,
+              attack: 0.003,
+              release: 0.25,
+            });
+            node.connect(offlineComp);
+            node = offlineComp;
+          }
 
-        // 6. Phaser
-        if (enablePhaser) {
-          const offlinePhaser = new Tone.Phaser({
-            frequency: phaserFreq,
-            octaves: 3,
-            baseFrequency: 350,
-            wet: 0.5
-          });
-          node.connect(offlinePhaser);
-          node = offlinePhaser;
-        }
+          // 6. Phaser
+          if (enablePhaser) {
+            const offlinePhaser = new Tone.Phaser({
+              frequency: phaserFreq,
+              octaves: 3,
+              baseFrequency: 350,
+              wet: 0.5,
+            });
+            node.connect(offlinePhaser);
+            node = offlinePhaser;
+          }
 
-        // 7. Tremolo
-        if (enableTremolo) {
-          const offlineTremolo = new Tone.Tremolo({
-            frequency: tremoloFreq,
-            depth: 0.7,
-            wet: 0.5
-          }).start(0);
-          node.connect(offlineTremolo);
-          node = offlineTremolo;
-        }
+          // 7. Tremolo
+          if (enableTremolo) {
+            const offlineTremolo = new Tone.Tremolo({
+              frequency: tremoloFreq,
+              depth: 0.7,
+              wet: 0.5,
+            }).start(0);
+            node.connect(offlineTremolo);
+            node = offlineTremolo;
+          }
 
-        // 8. Chorus
-        if (enableChorus) {
-          const offlineChorus = new Tone.Chorus({
-            frequency: 1.5,
-            delayTime: 3.5,
-            depth: chorusDepth,
-            wet: 0.5
-          }).start(0);
-          node.connect(offlineChorus);
-          node = offlineChorus;
-        }
+          // 8. Chorus
+          if (enableChorus) {
+            const offlineChorus = new Tone.Chorus({
+              frequency: 1.5,
+              delayTime: 3.5,
+              depth: chorusDepth,
+              wet: 0.5,
+            }).start(0);
+            node.connect(offlineChorus);
+            node = offlineChorus;
+          }
 
-        // 9. Delay
-        if (enableDelay) {
-          const offlineDelay = new Tone.FeedbackDelay({
-            delayTime: delayTime,
-            feedback: delayFeedback,
-            wet: 0.35
-          });
-          node.connect(offlineDelay);
-          node = offlineDelay;
-        }
+          // 9. Delay
+          if (enableDelay) {
+            const offlineDelay = new Tone.FeedbackDelay({
+              delayTime: delayTime,
+              feedback: delayFeedback,
+              wet: 0.35,
+            });
+            node.connect(offlineDelay);
+            node = offlineDelay;
+          }
 
-        // 10. Reverb
-        if (enableReverb) {
-          const offlineReverb = new Tone.Reverb({
-            decay: reverbDecay,
-            wet: reverbWet
-          });
-          await offlineReverb.generate();
-          node.connect(offlineReverb);
-          node = offlineReverb;
-        }
+          // 10. Reverb
+          if (enableReverb) {
+            const offlineReverb = new Tone.Reverb({
+              decay: reverbDecay,
+              wet: reverbWet,
+            });
+            await offlineReverb.generate();
+            node.connect(offlineReverb);
+            node = offlineReverb;
+          }
 
-        // 11. Widener
-        if (enableWidener) {
-          const offlineWidener = new Tone.StereoWidener({
-            width: widenerWidth
-          });
-          node.connect(offlineWidener);
-          node = offlineWidener;
-        }
+          // 11. Widener
+          if (enableWidener) {
+            const offlineWidener = new Tone.StereoWidener({
+              width: widenerWidth,
+            });
+            node.connect(offlineWidener);
+            node = offlineWidener;
+          }
 
-        // 12. Volume
-        const offlineVol = new Tone.Volume(masterVolume);
-        node.connect(offlineVol);
-        offlineVol.toDestination();
+          // 12. Volume
+          const offlineVol = new Tone.Volume(masterVolume);
+          node.connect(offlineVol);
+          offlineVol.toDestination();
 
-        // Start playback inside offline context
-        offlinePlayer.start(0);
-      }, renderDuration, channels, sampleRate);
+          // Start playback inside offline context
+          offlinePlayer.start(0);
+        },
+        renderDuration,
+        channels,
+        sampleRate,
+      );
 
       setExportProgress(65);
-      setExportStatusText(`Encoding audio to ${exportFormat.toUpperCase()} format...`);
+      setExportStatusText(
+        `Encoding audio to ${exportFormat.toUpperCase()} format...`,
+      );
 
       const rawAudioBuffer = renderedToneBuffer.get();
       let outputBlob = null;
@@ -905,11 +932,12 @@ export default function AudioEditorPage() {
         outputBlob = audioBufferToWav(rawAudioBuffer);
         fileExtension = "wav";
       } else if (exportFormat === "ogg") {
-        const supportedType = [
-          "audio/ogg;codecs=opus",
-          "audio/ogg",
-          "audio/webm;codecs=opus"
-        ].find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) || "audio/ogg";
+        const supportedType =
+          ["audio/ogg;codecs=opus", "audio/ogg", "audio/webm;codecs=opus"].find(
+            (t) =>
+              typeof MediaRecorder !== "undefined" &&
+              MediaRecorder.isTypeSupported(t),
+          ) || "audio/ogg";
         outputBlob = await encodeAudioBufferWithMediaRecorder(
           rawAudioBuffer,
           supportedType,
@@ -917,31 +945,36 @@ export default function AudioEditorPage() {
           (pct) => {
             setExportProgress(65 + Math.round(pct * 0.25));
             setExportStatusText(`Encoding compressed OGG stream (${pct}%)...`);
-          }
+          },
         );
         fileExtension = "ogg";
       } else if (exportFormat === "mp4") {
-        const supportedType = [
-          "audio/mp4",
-          "audio/aac",
-          "audio/webm;codecs=opus"
-        ].find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) || "audio/mp4";
+        const supportedType =
+          ["audio/mp4", "audio/aac", "audio/webm;codecs=opus"].find(
+            (t) =>
+              typeof MediaRecorder !== "undefined" &&
+              MediaRecorder.isTypeSupported(t),
+          ) || "audio/mp4";
         outputBlob = await encodeAudioBufferWithMediaRecorder(
           rawAudioBuffer,
           supportedType,
           parseInt(exportBitrate, 10),
           (pct) => {
             setExportProgress(65 + Math.round(pct * 0.25));
-            setExportStatusText(`Encoding compressed AAC/MP4 stream (${pct}%)...`);
-          }
+            setExportStatusText(
+              `Encoding compressed AAC/MP4 stream (${pct}%)...`,
+            );
+          },
         );
         fileExtension = "m4a";
       } else {
         // webm
-        const supportedType = [
-          "audio/webm;codecs=opus",
-          "audio/webm"
-        ].find((t) => typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(t)) || "audio/webm";
+        const supportedType =
+          ["audio/webm;codecs=opus", "audio/webm"].find(
+            (t) =>
+              typeof MediaRecorder !== "undefined" &&
+              MediaRecorder.isTypeSupported(t),
+          ) || "audio/webm";
         outputBlob = await encodeAudioBufferWithMediaRecorder(
           rawAudioBuffer,
           supportedType,
@@ -949,7 +982,7 @@ export default function AudioEditorPage() {
           (pct) => {
             setExportProgress(65 + Math.round(pct * 0.25));
             setExportStatusText(`Encoding compressed WebM stream (${pct}%)...`);
-          }
+          },
         );
         fileExtension = "webm";
       }
@@ -958,7 +991,9 @@ export default function AudioEditorPage() {
       setExportStatusText("Triggering file download...");
 
       // Download file via synthetic anchor tag
-      const baseName = fileName ? fileName.replace(/\.[^/.]+$/, "") : "master-audio";
+      const baseName = fileName
+        ? fileName.replace(/\.[^/.]+$/, "")
+        : "master-audio";
       const downloadUrl = URL.createObjectURL(outputBlob);
       const downloadLink = document.createElement("a");
       downloadLink.href = downloadUrl;
@@ -973,16 +1008,19 @@ export default function AudioEditorPage() {
       }, 5000);
 
       setExportProgress(100);
-      setExportStatusText(`Export complete: ${baseName}-processed.${fileExtension}`);
+      setExportStatusText(
+        `Export complete: ${baseName}-processed.${fileExtension}`,
+      );
       setTimeout(() => {
         setIsExporting(false);
         setExportStatusText("");
         setExportProgress(0);
       }, 2500);
-
     } catch (err) {
       console.error("Export error:", err);
-      setErrorMessage(`Export failed: ${err.message || "An unexpected error occurred during rendering."}`);
+      setErrorMessage(
+        `Export failed: ${err.message || "An unexpected error occurred during rendering."}`,
+      );
       setIsExporting(false);
       setExportStatusText("");
     }
@@ -994,9 +1032,12 @@ export default function AudioEditorPage() {
 
       <main className="flex-grow max-w-5xl mx-auto w-full px-6 py-12 space-y-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Professional Studio Rack</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Professional Studio Rack
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Upload vocals or instrument tracks, apply professional studio processing, compression, and pitch adjustments.
+            Upload vocals or instrument tracks, apply professional studio
+            processing, compression, and pitch adjustments.
           </p>
         </div>
 
@@ -1009,15 +1050,24 @@ export default function AudioEditorPage() {
             onChange={handleFileUpload}
             className="hidden"
           />
-          <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center space-y-4">
+          <label
+            htmlFor="audio-upload"
+            className="cursor-pointer flex flex-col items-center space-y-4"
+          >
             <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
               <ArrowUpTrayIcon className="h-6 w-6" />
             </div>
             <div className="space-y-1">
               <p className="font-medium text-sm">
-                {fileName ? <span className="text-indigo-400">{fileName}</span> : "Click to upload vocal track or drag & drop"}
+                {fileName ? (
+                  <span className="text-indigo-400">{fileName}</span>
+                ) : (
+                  "Click to upload vocal track or drag & drop"
+                )}
               </p>
-              <p className="text-xs text-gray-500">Supports MP3, WAV, FLAC, OGG, M4A</p>
+              <p className="text-xs text-gray-500">
+                Supports MP3, WAV, FLAC, OGG, M4A
+              </p>
             </div>
           </label>
         </div>
@@ -1036,9 +1086,14 @@ export default function AudioEditorPage() {
               <div className="flex items-center gap-3">
                 <MusicalNoteIcon className="h-6 w-6 text-indigo-500" />
                 <div>
-                  <h3 className="font-semibold text-lg">Master Vocal Channel Strip</h3>
+                  <h3 className="font-semibold text-lg">
+                    Master Vocal Channel Strip
+                  </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    File: <span className="font-mono text-indigo-500 dark:text-indigo-400">{fileName}</span>
+                    File:{" "}
+                    <span className="font-mono text-indigo-500 dark:text-indigo-400">
+                      {fileName}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -1077,7 +1132,9 @@ export default function AudioEditorPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1 font-mono text-sm">
-                  <span className="text-indigo-400 font-bold">{formatTime(currentTime)}</span>
+                  <span className="text-indigo-400 font-bold">
+                    {formatTime(currentTime)}
+                  </span>
                   <span className="text-gray-500">/</span>
                   <span className="text-gray-400">{formatTime(duration)}</span>
                 </div>
@@ -1104,7 +1161,11 @@ export default function AudioEditorPage() {
                 </div>
                 <div className="flex justify-between text-[11px] font-mono text-gray-500">
                   <span>0:00.0</span>
-                  <span>{duration > 0 ? `${((currentTime / duration) * 100).toFixed(1)}%` : "0%"}</span>
+                  <span>
+                    {duration > 0
+                      ? `${((currentTime / duration) * 100).toFixed(1)}%`
+                      : "0%"}
+                  </span>
                   <span>{formatTime(duration)}</span>
                 </div>
               </div>
@@ -1139,8 +1200,14 @@ export default function AudioEditorPage() {
                     disabled={isProcessing}
                     className="px-6 py-2.5 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-all flex items-center gap-2 disabled:opacity-50 shadow-md shadow-indigo-600/30"
                   >
-                    {isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
-                    <span>{isPlaying ? "Pause Master" : "Play Master Preview"}</span>
+                    {isPlaying ? (
+                      <PauseIcon className="h-5 w-5" />
+                    ) : (
+                      <PlayIcon className="h-5 w-5" />
+                    )}
+                    <span>
+                      {isPlaying ? "Pause Master" : "Play Master Preview"}
+                    </span>
                   </button>
 
                   {/* Skip +5s */}
@@ -1161,7 +1228,9 @@ export default function AudioEditorPage() {
                     <span>Speed:</span>
                     <select
                       value={playbackRate}
-                      onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setPlaybackRate(parseFloat(e.target.value))
+                      }
                       className="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1 text-xs font-mono text-gray-800 dark:text-gray-200 focus:outline-none"
                     >
                       <option value="0.5">0.5x</option>
@@ -1181,7 +1250,9 @@ export default function AudioEditorPage() {
                         : "bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-200"
                     }`}
                   >
-                    <ArrowPathIcon className={`h-3.5 w-3.5 ${isLooping ? "text-indigo-400" : ""}`} />
+                    <ArrowPathIcon
+                      className={`h-3.5 w-3.5 ${isLooping ? "text-indigo-400" : ""}`}
+                    />
                     <span>Loop: {isLooping ? "ON" : "OFF"}</span>
                   </button>
                 </div>
@@ -1198,13 +1269,13 @@ export default function AudioEditorPage() {
                   Studio DSP Rack & Effects Chain
                 </h4>
                 <p className="text-xs text-gray-500">
-                  Real-time DSP modules: Noise Cancellation, Dynamics, 3-Band EQ, Pitch, Modulation, Echo, Reverb & Lo-Fi
+                  Real-time DSP modules: Noise Cancellation, Dynamics, 3-Band
+                  EQ, Pitch, Modulation, Echo, Reverb & Lo-Fi
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              
               {/* 0. Noise Cancellation & Rumble Gate */}
               <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
                 <div className="flex items-center justify-between">
@@ -1220,14 +1291,17 @@ export default function AudioEditorPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-500">
-                  Filters sub-75Hz mic rumble & cuts out room hiss when vocals pause.
+                  Filters sub-75Hz mic rumble & cuts out room hiss when vocals
+                  pause.
                 </p>
                 {enableNoiseCancel && (
                   <div className="space-y-2 pt-1">
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Noise Gate Cutoff</span>
-                        <span className="font-mono text-emerald-400">{noiseGateThreshold} dB</span>
+                        <span className="font-mono text-emerald-400">
+                          {noiseGateThreshold} dB
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1235,14 +1309,18 @@ export default function AudioEditorPage() {
                         max="-15"
                         step="1"
                         value={noiseGateThreshold}
-                        onChange={(e) => setNoiseGateThreshold(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setNoiseGateThreshold(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Gate Release Speed</span>
-                        <span className="font-mono">{Math.round(noiseSmoothing * 1000)}ms</span>
+                        <span className="font-mono">
+                          {Math.round(noiseSmoothing * 1000)}ms
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1250,7 +1328,9 @@ export default function AudioEditorPage() {
                         max="0.3"
                         step="0.01"
                         value={noiseSmoothing}
-                        onChange={(e) => setNoiseSmoothing(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setNoiseSmoothing(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
@@ -1272,12 +1352,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Tames peaks & dynamics for a tight broadcast mix.</p>
+                <p className="text-xs text-gray-500">
+                  Tames peaks & dynamics for a tight broadcast mix.
+                </p>
                 {enableCompressor && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Threshold</span>
-                      <span className="font-mono text-indigo-400">{compressorThreshold} dB</span>
+                      <span className="font-mono text-indigo-400">
+                        {compressorThreshold} dB
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1285,7 +1369,9 @@ export default function AudioEditorPage() {
                       max="0"
                       step="1"
                       value={compressorThreshold}
-                      onChange={(e) => setCompressorThreshold(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setCompressorThreshold(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1306,13 +1392,17 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Shape tonal balance across low, mid, and highs.</p>
+                <p className="text-xs text-gray-500">
+                  Shape tonal balance across low, mid, and highs.
+                </p>
                 {enableEQ && (
                   <div className="space-y-2 pt-1">
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Bass Low</span>
-                        <span className="font-mono">{eqLow > 0 ? `+${eqLow}` : eqLow} dB</span>
+                        <span className="font-mono">
+                          {eqLow > 0 ? `+${eqLow}` : eqLow} dB
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1327,7 +1417,9 @@ export default function AudioEditorPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Mid Range</span>
-                        <span className="font-mono">{eqMid > 0 ? `+${eqMid}` : eqMid} dB</span>
+                        <span className="font-mono">
+                          {eqMid > 0 ? `+${eqMid}` : eqMid} dB
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1342,7 +1434,9 @@ export default function AudioEditorPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Treble High</span>
-                        <span className="font-mono">{eqHigh > 0 ? `+${eqHigh}` : eqHigh} dB</span>
+                        <span className="font-mono">
+                          {eqHigh > 0 ? `+${eqHigh}` : eqHigh} dB
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1378,7 +1472,9 @@ export default function AudioEditorPage() {
                     {pitchShift > 0 ? `+${pitchShift}` : pitchShift} st
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">Semitone transposition (-12 to +12 octaves).</p>
+                <p className="text-xs text-gray-500">
+                  Semitone transposition (-12 to +12 octaves).
+                </p>
                 <div className="space-y-2 pt-1">
                   <input
                     type="range"
@@ -1428,13 +1524,17 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Rhythmic stereo repeats and slapback delay.</p>
+                <p className="text-xs text-gray-500">
+                  Rhythmic stereo repeats and slapback delay.
+                </p>
                 {enableDelay && (
                   <div className="space-y-2 pt-1">
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Delay Time</span>
-                        <span className="font-mono text-indigo-400">{delayTime}s</span>
+                        <span className="font-mono text-indigo-400">
+                          {delayTime}s
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1442,14 +1542,18 @@ export default function AudioEditorPage() {
                         max="1"
                         step="0.05"
                         value={delayTime}
-                        onChange={(e) => setDelayTime(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setDelayTime(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Feedback</span>
-                        <span className="font-mono">{Math.round(delayFeedback * 100)}%</span>
+                        <span className="font-mono">
+                          {Math.round(delayFeedback * 100)}%
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1457,7 +1561,9 @@ export default function AudioEditorPage() {
                         max="0.85"
                         step="0.05"
                         value={delayFeedback}
-                        onChange={(e) => setDelayFeedback(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setDelayFeedback(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
@@ -1479,13 +1585,17 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Acoustic room space & lush atmospheric decay.</p>
+                <p className="text-xs text-gray-500">
+                  Acoustic room space & lush atmospheric decay.
+                </p>
                 {enableReverb && (
                   <div className="space-y-2 pt-1">
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Decay Time</span>
-                        <span className="font-mono text-indigo-400">{reverbDecay}s</span>
+                        <span className="font-mono text-indigo-400">
+                          {reverbDecay}s
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1493,14 +1603,18 @@ export default function AudioEditorPage() {
                         max="10"
                         step="0.5"
                         value={reverbDecay}
-                        onChange={(e) => setReverbDecay(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setReverbDecay(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs text-gray-500">
                         <span>Reverb Mix (Wet)</span>
-                        <span className="font-mono">{Math.round(reverbWet * 100)}%</span>
+                        <span className="font-mono">
+                          {Math.round(reverbWet * 100)}%
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -1508,7 +1622,9 @@ export default function AudioEditorPage() {
                         max="1"
                         step="0.05"
                         value={reverbWet}
-                        onChange={(e) => setReverbWet(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          setReverbWet(parseFloat(e.target.value))
+                        }
                         className="w-full accent-indigo-600 cursor-pointer"
                       />
                     </div>
@@ -1530,12 +1646,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Analog tube warmth, harmonic grit and fuzz.</p>
+                <p className="text-xs text-gray-500">
+                  Analog tube warmth, harmonic grit and fuzz.
+                </p>
                 {enableDistortion && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Drive Amount</span>
-                      <span className="font-mono text-indigo-400">{Math.round(distortionAmount * 100)}%</span>
+                      <span className="font-mono text-indigo-400">
+                        {Math.round(distortionAmount * 100)}%
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1543,7 +1663,9 @@ export default function AudioEditorPage() {
                       max="1"
                       step="0.05"
                       value={distortionAmount}
-                      onChange={(e) => setDistortionAmount(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setDistortionAmount(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1564,12 +1686,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Lush ensemble thickening and modulation shimmer.</p>
+                <p className="text-xs text-gray-500">
+                  Lush ensemble thickening and modulation shimmer.
+                </p>
                 {enableChorus && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Depth</span>
-                      <span className="font-mono text-indigo-400">{Math.round(chorusDepth * 100)}%</span>
+                      <span className="font-mono text-indigo-400">
+                        {Math.round(chorusDepth * 100)}%
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1577,7 +1703,9 @@ export default function AudioEditorPage() {
                       max="1"
                       step="0.05"
                       value={chorusDepth}
-                      onChange={(e) => setChorusDepth(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setChorusDepth(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1598,12 +1726,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Swirling psychedelic 70s phase cancellation sweeps.</p>
+                <p className="text-xs text-gray-500">
+                  Swirling psychedelic 70s phase cancellation sweeps.
+                </p>
                 {enablePhaser && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Frequency</span>
-                      <span className="font-mono text-indigo-400">{phaserFreq} Hz</span>
+                      <span className="font-mono text-indigo-400">
+                        {phaserFreq} Hz
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1611,7 +1743,9 @@ export default function AudioEditorPage() {
                       max="5"
                       step="0.1"
                       value={phaserFreq}
-                      onChange={(e) => setPhaserFreq(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setPhaserFreq(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1632,12 +1766,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Rhythmic volume fluctuation and stutter effect.</p>
+                <p className="text-xs text-gray-500">
+                  Rhythmic volume fluctuation and stutter effect.
+                </p>
                 {enableTremolo && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Speed</span>
-                      <span className="font-mono text-indigo-400">{tremoloFreq} Hz</span>
+                      <span className="font-mono text-indigo-400">
+                        {tremoloFreq} Hz
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1645,7 +1783,9 @@ export default function AudioEditorPage() {
                       max="15"
                       step="0.5"
                       value={tremoloFreq}
-                      onChange={(e) => setTremoloFreq(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setTremoloFreq(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1666,12 +1806,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Downsamples bit depth for vintage video game crunch.</p>
+                <p className="text-xs text-gray-500">
+                  Downsamples bit depth for vintage video game crunch.
+                </p>
                 {enableBitCrusher && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Resolution</span>
-                      <span className="font-mono text-indigo-400">{bitCrusherBits} bits</span>
+                      <span className="font-mono text-indigo-400">
+                        {bitCrusherBits} bits
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1679,7 +1823,9 @@ export default function AudioEditorPage() {
                       max="16"
                       step="1"
                       value={bitCrusherBits}
-                      onChange={(e) => setBitCrusherBits(parseInt(e.target.value))}
+                      onChange={(e) =>
+                        setBitCrusherBits(parseInt(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
@@ -1700,12 +1846,16 @@ export default function AudioEditorPage() {
                     className="accent-indigo-600 h-4 w-4 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-gray-500">Expands the stereo panorama field for an immersive mix.</p>
+                <p className="text-xs text-gray-500">
+                  Expands the stereo panorama field for an immersive mix.
+                </p>
                 {enableWidener && (
                   <div className="space-y-1 pt-1">
                     <div className="flex justify-between text-xs text-gray-500">
                       <span>Width</span>
-                      <span className="font-mono text-indigo-400">{Math.round(widenerWidth * 100)}%</span>
+                      <span className="font-mono text-indigo-400">
+                        {Math.round(widenerWidth * 100)}%
+                      </span>
                     </div>
                     <input
                       type="range"
@@ -1713,13 +1863,14 @@ export default function AudioEditorPage() {
                       max="1"
                       step="0.05"
                       value={widenerWidth}
-                      onChange={(e) => setWidenerWidth(parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        setWidenerWidth(parseFloat(e.target.value))
+                      }
                       className="w-full accent-indigo-600 cursor-pointer"
                     />
                   </div>
                 )}
               </div>
-
             </div>
 
             <hr className="border-gray-200 dark:border-gray-800" />
@@ -1733,7 +1884,9 @@ export default function AudioEditorPage() {
                     Export Processed Master Audio
                   </h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Bakes all active DSP effects, EQ curves, transposition, dynamics, and master volume directly into your choice of audio format.
+                    Bakes all active DSP effects, EQ curves, transposition,
+                    dynamics, and master volume directly into your choice of
+                    audio format.
                   </p>
                 </div>
                 <button
@@ -1742,7 +1895,11 @@ export default function AudioEditorPage() {
                   className="px-6 py-2.5 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/20 disabled:opacity-50"
                 >
                   <ArrowDownTrayIcon className="h-5 w-5" />
-                  <span>{isExporting ? "Exporting..." : `Export .${exportFormat.toUpperCase()}`}</span>
+                  <span>
+                    {isExporting
+                      ? "Exporting..."
+                      : `Export .${exportFormat.toUpperCase()}`}
+                  </span>
                 </button>
               </div>
 
@@ -1750,10 +1907,17 @@ export default function AudioEditorPage() {
               <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
                 <InformationCircleIcon className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
                 <div className="space-y-0.5">
-                  <p className="font-semibold text-amber-400">Export Processing Notice:</p>
+                  <p className="font-semibold text-amber-400">
+                    Export Processing Notice:
+                  </p>
                   <p className="text-gray-400">
-                    Exporting compiles all studio effects, transposition, and dynamic processing. For long tracks or compressed formats (WebM/OGG/M4A), real-time stream encoding occurs and may take a moment.
-                    <span className="text-amber-300 font-medium ml-1">Tip: Choose WAV for instant near-realtime download.</span>
+                    Exporting compiles all studio effects, transposition, and
+                    dynamic processing. For long tracks or compressed formats
+                    (WebM/OGG/M4A), real-time stream encoding occurs and may
+                    take a moment.
+                    <span className="text-amber-300 font-medium ml-1">
+                      Tip: Choose WAV for instant near-realtime download.
+                    </span>
                   </p>
                 </div>
               </div>
@@ -1762,7 +1926,9 @@ export default function AudioEditorPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 {/* Format selection */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400">Output Audio Format</label>
+                  <label className="text-xs font-medium text-gray-400">
+                    Output Audio Format
+                  </label>
                   <select
                     value={exportFormat}
                     onChange={(e) => setExportFormat(e.target.value)}
@@ -1770,7 +1936,9 @@ export default function AudioEditorPage() {
                     className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="wav">WAV (Lossless 16-bit PCM)</option>
-                    <option value="webm">WebM (Opus Codec - Web Standard)</option>
+                    <option value="webm">
+                      WebM (Opus Codec - Web Standard)
+                    </option>
                     <option value="ogg">OGG (Ogg Container / Opus)</option>
                     <option value="mp4">M4A / MP4 (AAC / Universal)</option>
                   </select>
@@ -1778,7 +1946,9 @@ export default function AudioEditorPage() {
 
                 {/* Bitrate / Quality */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400">Audio Bitrate</label>
+                  <label className="text-xs font-medium text-gray-400">
+                    Audio Bitrate
+                  </label>
                   <select
                     value={exportBitrate}
                     onChange={(e) => setExportBitrate(e.target.value)}
@@ -1794,7 +1964,9 @@ export default function AudioEditorPage() {
 
                 {/* Channel configuration */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400">Channel Mode</label>
+                  <label className="text-xs font-medium text-gray-400">
+                    Channel Mode
+                  </label>
                   <select
                     value={exportChannels}
                     onChange={(e) => setExportChannels(e.target.value)}
@@ -1811,8 +1983,12 @@ export default function AudioEditorPage() {
               {isExporting && (
                 <div className="space-y-2 pt-2 border-t border-gray-200/20 dark:border-gray-800/40">
                   <div className="flex justify-between text-xs">
-                    <span className="text-indigo-400 font-medium">{exportStatusText}</span>
-                    <span className="font-mono text-gray-400">{exportProgress}%</span>
+                    <span className="text-indigo-400 font-medium">
+                      {exportStatusText}
+                    </span>
+                    <span className="font-mono text-gray-400">
+                      {exportProgress}%
+                    </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
                     <div

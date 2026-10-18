@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SparklesIcon, ScissorsIcon, CpuChipIcon, ArrowRightIcon, ShieldCheckIcon, MusicalNoteIcon, BoltIcon } from "@heroicons/react/24/outline";
 
 export const metadata = {
-  title: "Beats Lounge | Professional Browser-Based Audio Editor & Processor",
+  title: "Softgenie Beats | Professional Browser-Based Audio Editor & Processor",
   description: "Edit, trim, apply noise cancellation, adjust pitch/auto-tune, and export audio files in multiple formats instantly in your browser.",
 };
 

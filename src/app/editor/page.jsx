@@ -1904,18 +1904,18 @@ export default function AudioEditorPage() {
               </div>
 
               {/* Informative Processing Notice */}
-              <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
-                <InformationCircleIcon className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
-                <div className="space-y-0.5">
-                  <p className="font-semibold text-amber-400">
+              <div className="flex items-start gap-3 p-4 rounded-2xl bg-warning/10 border border-warning/20 text-xs text-warning">
+                <InformationCircleIcon className="h-5 w-5 text-warning mt-0.5 shrink-0" />
+                <div className="space-y-1 font-sans">
+                  <p className="font-bold text-warning font-heading text-sm">
                     Export Processing Notice:
                   </p>
-                  <p className="text-gray-400">
+                  <p className="text-dark/70 dark:text-light/70 leading-relaxed">
                     Exporting compiles all studio effects, transposition, and
                     dynamic processing. For long tracks or compressed formats
                     (WebM/OGG/M4A), real-time stream encoding occurs and may
                     take a moment.
-                    <span className="text-amber-300 font-medium ml-1">
+                    <span className="text-warning font-bold ml-1">
                       Tip: Choose WAV for instant near-realtime download.
                     </span>
                   </p>
@@ -1945,15 +1945,15 @@ export default function AudioEditorPage() {
                 </div>
 
                 {/* Bitrate / Quality */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-400">
+                <div className="space-y-1.5 font-sans">
+                  <label className="text-xs font-bold text-dark/50 dark:text-light/50 font-heading uppercase tracking-wider">
                     Audio Bitrate
                   </label>
                   <select
                     value={exportBitrate}
                     onChange={(e) => setExportBitrate(e.target.value)}
                     disabled={isExporting || exportFormat === "wav"}
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-40"
+                    className="w-full bg-light dark:bg-dark border border-tertiary/30 rounded-xl px-3 py-2.5 text-xs font-mono text-dark dark:text-light focus:outline-none focus:border-primary disabled:opacity-40 transition-colors"
                   >
                     <option value="128000">128 kbps (Standard Quality)</option>
                     <option value="192000">192 kbps (High Quality)</option>
@@ -1981,18 +1981,18 @@ export default function AudioEditorPage() {
 
               {/* Export Progress Bar */}
               {isExporting && (
-                <div className="space-y-2 pt-2 border-t border-gray-200/20 dark:border-gray-800/40">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-indigo-400 font-medium">
+                <div className="space-y-2 pt-3 border-t border-tertiary/20">
+                  <div className="flex justify-between text-xs font-sans">
+                    <span className="text-primary font-bold">
                       {exportStatusText}
                     </span>
-                    <span className="font-mono text-gray-400">
+                    <span className="font-mono text-dark/60 dark:text-light/60 font-bold">
                       {exportProgress}%
                     </span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
+                  <div className="w-full h-3 rounded-full bg-light dark:bg-dark overflow-hidden border border-tertiary/30 p-0.5">
                     <div
-                      className="h-full bg-emerald-500 transition-all duration-300 ease-out"
+                      className="h-full bg-success rounded-full transition-all duration-300 ease-out shadow-sm"
                       style={{ width: `${exportProgress}%` }}
                     />
                   </div>

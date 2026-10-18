@@ -1,18 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@300;400;600;700&display=swap');
 @import "tailwindcss";
 
 /* Enable class-based dark/light switching in Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-anime-dark: #091540;     /* Deep navy/blue */
-  --color-anime-light: #F2F2F2;    /* Off-white */
-  --color-anime-coral: #D96868;    /* Accent coral */
-  --color-anime-olive: #91AE6E;    /* Muted green */
-  --color-anime-sage: #8BBB92;     /* Light sage green */
+  --color-primary: #4F46E5;
+  --color-secondary: #6366F1;
+  --color-tertiary: #A5B4FC;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+  --color-dark: #1F2937;
+  --color-light: #F9FAFB;
 
-  --font-heading: 'Outfit', sans-serif;
-  --font-sans: 'Inter', sans-serif;
+  --font-heading: 'Fira Sans', sans-serif;
+  --font-body: 'Lora', serif;
+  --font-sans: 'Nunito Sans', sans-serif;
 }
 
 /* Base styles: Light mode by default, switches when .dark class is absent/present */
@@ -30,4 +35,12 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+p {
+  font-family: var(--font-body);
+}
+
+button, span, label, input, select, textarea, a {
+  font-family: var(--font-sans);
 }

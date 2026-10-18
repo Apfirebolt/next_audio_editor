@@ -11,7 +11,8 @@ import {
   Bars3Icon, 
   XMarkIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  RadioIcon
 } from "@heroicons/react/24/outline";
 
 const Header = () => {
@@ -22,7 +23,6 @@ const Header = () => {
   // Initialize theme on mount based on localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    // Default to dark mode if nothing is saved
     if (savedTheme === 'light') {
       setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
@@ -49,97 +49,75 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  const navLinks = [
+    { name: "Home", href: "/", icon: HomeIcon },
+    { name: "Editor", href: "/editor", icon: ScissorsIcon },
+    { name: "Instrument", href: "/instrument", icon: MusicalNoteIcon },
+    { name: "About", href: "/about", icon: InformationCircleIcon },
+  ];
+
   return (
-    <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 transition-colors">
+    <header className="sticky top-0 z-50 bg-white/80 dark:bg-dark/90 backdrop-blur-xl border-b border-tertiary/20 dark:border-tertiary/10 transition-colors shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         
         {/* Brand / Logo & Theme Toggle */}
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl sm:text-2xl font-bold tracking-wider">
-              Beats<span className="text-indigo-500">Lounge</span> 
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-105 transition-transform">
+              <RadioIcon className="h-5 w-5 text-primary animate-pulse" />
+            </div>
+            <span className="text-xl sm:text-2xl font-extrabold tracking-wider font-heading">
+              SoftGenie <span className="text-primary">Beats</span> 
             </span>
           </Link>
 
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 transition-colors border border-indigo-500/20 flex items-center justify-center"
+            className="p-2 rounded-xl bg-tertiary/20 hover:bg-tertiary/30 text-primary transition-colors border border-tertiary/30 flex items-center justify-center shadow-inner"
             aria-label="Toggle theme"
           >
             {isDarkMode ? (
-              <SunIcon className="h-4 w-4 text-indigo-400" />
+              <SunIcon className="h-4 w-4 text-warning" />
             ) : (
-              <MoonIcon className="h-4 w-4 text-gray-900" />
+              <MoonIcon className="h-4 w-4 text-dark" />
             )}
           </button>
         </div>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:block">
-          <ul className="flex items-center gap-3 font-sans">
-            <li>
-              <Link 
-                href="/" 
-                className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
-                  pathname === '/' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-700 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10'
-                }`}
-              >
-                <HomeIcon className="h-4 w-4" />
-                <span>Home</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/editor" 
-                className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
-                  pathname === '/editor' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-700 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10'
-                }`}
-              >
-                <ScissorsIcon className="h-4 w-4" />
-                <span>Editor</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/instrument" 
-                className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
-                  pathname === '/instrument' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-700 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10'
-                }`}
-              >
-                <MusicalNoteIcon className="h-4 w-4" />
-                <span>Instrument</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                href="/about" 
-                className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center space-x-2 transition-colors whitespace-nowrap ${
-                  pathname === '/about' 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-gray-700 dark:text-gray-300 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10'
-                }`}
-              >
-                <InformationCircleIcon className="h-4 w-4" />
-                <span>About</span>
-              </Link>
-            </li>
+          <ul className="flex items-center gap-2 font-sans">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href;
+
+              return (
+                <li key={link.href}>
+                  <Link 
+                    href={link.href} 
+                    className={`px-4 py-2 rounded-full font-semibold text-sm flex items-center space-x-2 transition-all duration-200 whitespace-nowrap ${
+                      isActive 
+                        ? 'bg-primary text-white shadow-md shadow-primary/25 scale-[1.02]' 
+                        : 'text-dark dark:text-light/80 hover:text-primary dark:hover:text-tertiary hover:bg-primary/10'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{link.name}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="md:hidden p-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-indigo-500/10 focus:outline-none transition-colors"
+          className="md:hidden p-2 rounded-xl text-dark dark:text-light hover:bg-primary/10 focus:outline-none transition-colors border border-tertiary/20"
           aria-label="Toggle mobile menu"
         >
           {isMobileMenuOpen ? (
-            <XMarkIcon className="h-6 w-6 text-indigo-500" />
+            <XMarkIcon className="h-6 w-6 text-primary" />
           ) : (
             <Bars3Icon className="h-6 w-6" />
           )}
@@ -148,54 +126,26 @@ const Header = () => {
 
       {/* Mobile Dropdown Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 px-4 py-4 space-y-2 shadow-2xl">
-          <Link
-            href="/"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
-              pathname === '/' 
-                ? 'bg-indigo-600 text-white' 
-                : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-500/10 hover:text-indigo-500'
-            }`}
-          >
-            <HomeIcon className="h-5 w-5" />
-            <span>Home</span>
-          </Link>
-          
-          <Link
-            href="/editor"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
-              pathname === '/editor' 
-                ? 'bg-indigo-600 text-white' 
-                : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-500/10 hover:text-indigo-500'
-            }`}
-          >
-            <ScissorsIcon className="h-5 w-5" />
-            <span>Editor</span>
-          </Link>
+        <div className="md:hidden bg-light/95 dark:bg-dark/95 backdrop-blur-2xl border-b border-tertiary/20 px-4 py-4 space-y-2 shadow-2xl animate-fadeIn">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
 
-          <Link
-            href="/instrument"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
-              pathname === '/instrument' 
-                ? 'bg-indigo-600 text-white' 
-                : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-500/10 hover:text-indigo-500'
-            }`}
-          >
-            <MusicalNoteIcon className="h-5 w-5" />
-            <span>Instrument</span>
-          </Link>
-
-          <Link
-            href="/about"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
-              pathname === '/about' 
-                ? 'bg-indigo-600 text-white' 
-                : 'text-gray-700 dark:text-gray-300 hover:bg-indigo-500/10 hover:text-indigo-500'
-            }`}
-          >
-            <InformationCircleIcon className="h-5 w-5" />
-            <span>About</span>
-          </Link>
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-colors ${
+                  isActive 
+                    ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                    : 'text-dark dark:text-light/90 hover:bg-primary/10 hover:text-primary'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span>{link.name}</span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </header>

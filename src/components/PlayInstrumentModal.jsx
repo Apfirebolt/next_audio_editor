@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { XMarkIcon, PlayIcon, PauseIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, PlayIcon, PauseIcon, ArrowDownTrayIcon, MusicalNoteIcon } from "@heroicons/react/24/outline";
 import * as Tone from "tone";
 
 export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedClips, selectedSynth }) {
@@ -209,34 +209,37 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fadeIn">
-      <div className="relative w-full max-w-5xl rounded-3xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl p-6 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-dark/80 backdrop-blur-md p-4 animate-fadeIn">
+      <div className="relative w-full max-w-5xl rounded-3xl bg-white/90 dark:bg-dark/95 border border-tertiary/20 dark:border-tertiary/10 shadow-2xl p-8 space-y-6 backdrop-blur-2xl">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight">Studio Master Arrangement Player</h2>
-            <p className="text-xs text-gray-500">Scrub the playback cursor, preview your multi-track MIDI arrangements, or export.</p>
+        <div className="flex items-center justify-between border-b border-tertiary/20 pb-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold tracking-tight font-heading flex items-center gap-2">
+              <MusicalNoteIcon className="h-5 w-5 text-primary" />
+              <span>Studio Master Arrangement Player</span>
+            </h2>
+            <p className="text-xs text-dark/60 dark:text-light/60 font-sans">Scrub the playback cursor, preview your multi-track MIDI arrangements, or export.</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="p-2.5 rounded-xl bg-tertiary/10 hover:bg-tertiary/20 text-dark dark:text-light transition-colors border border-tertiary/20"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
         {/* Playback Controls & Export Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 bg-gray-50 dark:bg-gray-950 p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-light/50 dark:bg-dark/50 p-4 rounded-2xl border border-tertiary/20">
           <div className="flex items-center gap-4">
             <button
               onClick={togglePlay}
-              className="px-6 py-2.5 rounded-xl font-bold bg-indigo-600 text-white hover:bg-indigo-500 transition-all flex items-center gap-2 text-sm shadow-lg shadow-indigo-600/25"
+              className="px-6 py-2.5 rounded-xl font-bold bg-primary hover:bg-secondary text-white transition-all flex items-center gap-2 text-sm shadow-lg shadow-primary/25"
             >
               {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
               <span>{isPlaying ? "Pause Master" : "Play Master Mix"}</span>
             </button>
-            <div className="font-mono text-sm font-bold text-indigo-400">
+            <div className="font-mono text-sm font-bold text-primary">
               {cursorPosition.toFixed(2)}s / {maxDuration.toFixed(2)}s
             </div>
           </div>
@@ -244,7 +247,7 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
           <div className="flex items-center gap-3">
             <button
               onClick={() => setCursorPosition(0)}
-              className="text-xs font-semibold text-gray-500 hover:text-indigo-400 transition-colors"
+              className="text-xs font-bold text-dark/60 dark:text-light/60 hover:text-primary transition-colors font-sans"
             >
               Rewind
             </button>
@@ -252,7 +255,7 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
             <button
               onClick={exportMasterMix}
               disabled={isExporting || recordedClips.length === 0}
-              className="px-4 py-2.5 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-500 transition-all flex items-center gap-2 text-xs shadow-md disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl font-bold bg-success text-white hover:opacity-90 transition-all flex items-center gap-2 text-xs shadow-md disabled:opacity-50"
             >
               <ArrowDownTrayIcon className="h-4 w-4" />
               <span>{isExporting ? "Rendering WAV..." : "Export Master Mix (WAV)"}</span>
@@ -262,19 +265,21 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
 
         {/* Interactive Timeline Grid with Movable Cursor */}
         <div className="space-y-3">
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Multi-Track Lanes (Click to Scrub)</div>
+          <div className="text-xs font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider font-heading">
+            Multi-Track Lanes (Click to Scrub)
+          </div>
 
           <div 
             ref={timelineRef}
             onMouseDown={handleTimelineMouseDown}
-            className="relative h-72 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 overflow-y-auto overflow-x-hidden p-4 space-y-3 cursor-pointer select-none"
+            className="relative h-72 rounded-2xl bg-light dark:bg-dark border border-tertiary/20 overflow-y-auto overflow-x-hidden p-4 space-y-3 cursor-pointer select-none shadow-inner"
           >
             {/* Movable Playback Cursor Line */}
             <div
               style={{ left: `${(cursorPosition / maxDuration) * 100}%` }}
-              className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-30 pointer-events-none flex flex-col items-center"
+              className="absolute top-0 bottom-0 w-0.5 bg-danger z-30 pointer-events-none flex flex-col items-center"
             >
-              <div className="w-3 h-3 bg-red-500 rounded-full -mt-1 shadow-md" />
+              <div className="w-3 h-3 bg-danger rounded-full -mt-1 shadow-md" />
             </div>
 
             {/* Render Tracks & MIDI Blocks */}
@@ -282,13 +287,15 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
               const trackClips = recordedClips.filter((c) => c.trackId === track.id);
 
               return (
-                <div key={track.id} className="relative p-3 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-indigo-400">{track.name}</span>
-                    <span className="text-[10px] text-gray-500">{track.muted ? "Muted" : "Active"}</span>
+                <div key={track.id} className="relative p-3.5 rounded-xl bg-white/60 dark:bg-dark/60 border border-tertiary/20 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-primary font-heading">{track.name}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${track.muted ? "bg-danger/20 text-danger" : "bg-success/20 text-success"}`}>
+                      {track.muted ? "MUTED" : "ACTIVE"}
+                    </span>
                   </div>
 
-                  <div className="relative h-14 bg-gray-50 dark:bg-gray-950 rounded-lg overflow-hidden flex items-center px-2">
+                  <div className="relative h-14 bg-light/50 dark:bg-dark/80 rounded-lg overflow-hidden flex items-center px-2 border border-tertiary/10">
                     {trackClips.map((clip) => {
                       const leftPercent = (clip.offset / maxDuration) * 100;
                       const widthPercent = (clip.duration / maxDuration) * 100;
@@ -300,10 +307,10 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
                             left: `${leftPercent}%`,
                             width: `${Math.max(widthPercent, 5)}%`,
                           }}
-                          className="absolute h-10 rounded-lg bg-indigo-600/90 border border-indigo-400 text-white p-1.5 flex flex-col justify-between shadow-sm pointer-events-none"
+                          className="absolute h-10 rounded-lg bg-primary border border-tertiary/40 text-white p-1.5 flex flex-col justify-between shadow-md pointer-events-none"
                         >
                           <div className="text-[9px] font-mono font-bold truncate">{clip.note}</div>
-                          <div className="text-[8px] text-indigo-200 truncate">{clip.instrumentName}</div>
+                          <div className="text-[8px] text-light/80 truncate font-sans">{clip.instrumentName}</div>
                         </div>
                       );
                     })}

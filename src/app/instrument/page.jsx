@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import VoiceRecorder from "../../components/VoiceRecorder";
+import VoiceEqualizer from "../../components/VoiceEqualizer"; // <--- Imported Voice EQ Component
 import { MusicalNoteIcon, PlayIcon, StopIcon, ArrowDownTrayIcon, SparklesIcon, AdjustmentsHorizontalIcon, MicrophoneIcon } from "@heroicons/react/24/outline";
 import * as Tone from "tone";
 
@@ -124,6 +125,9 @@ export default function InstrumentPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlobUrl, setRecordedBlobUrl] = useState(null);
   const [activeNotes, setActiveNotes] = useState({});
+
+  // Shared state to catch recorded mic URL from VoiceRecorder component
+  const [latestMicAudioUrl, setLatestMicAudioUrl] = useState(null);
 
   const [filterCutoff, setFilterCutoff] = useState(selectedInstrument.filterCutoff);
   const [filterType, setFilterType] = useState("lowpass");
@@ -365,7 +369,7 @@ export default function InstrumentPage() {
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Virtual Synth & Voice Studio</h1>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Play virtual instruments with effects chains or record vocals using your system microphone.
+              Play virtual instruments with effects chains or record and equalize vocals using your system microphone.
             </p>
           </div>
 
@@ -385,7 +389,7 @@ export default function InstrumentPage() {
               }`}
             >
               <MicrophoneIcon className="h-4 w-4" />
-              <span>Voice Recorder</span>
+              <span>Voice Studio</span>
             </button>
           </div>
         </div>
@@ -562,8 +566,22 @@ export default function InstrumentPage() {
           </div>
         )}
 
-        {/* TAB 2: IMPORTED VOICE RECORDER COMPONENT */}
-        {activeTab === "mic" && <VoiceRecorder />}
+        {/* TAB 2: VOICE RECORDER & GRANULAR EQUALIZER SUITE */}
+        {activeTab === "mic" && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* Voice Recorder Component (pass a callback to track recorded audio URL) */}
+            <VoiceRecorder onRecordingComplete={(url) => setLatestMicAudioUrl(url)} />
+
+            {/* Granular Voice Equalizer Component */}
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+              <div className="max-w-3xl mx-auto mb-4 text-center">
+                <h4 className="font-bold text-lg">Post-Production Voice Mixing</h4>
+                <p className="text-xs text-gray-500">Apply granular EQ shaping on your recorded vocal tracks.</p>
+              </div>
+              <VoiceEqualizer audioUrl={latestMicAudioUrl} />
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

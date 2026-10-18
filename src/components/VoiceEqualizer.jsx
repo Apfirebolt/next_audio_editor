@@ -4,44 +4,54 @@ import React, { useState, useRef, useEffect } from "react";
 import { AdjustmentsHorizontalIcon, PlayIcon, StopIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import * as Tone from "tone";
 
+const EQ_BANDS = [
+  { id: "lowCut", label: "Low-Cut", sub: "Rumble Filter", min: 20, max: 300, step: 5, unit: "Hz", defaultVal: 80 },
+  { id: "band1", label: "Lows", sub: "250 Hz", min: -24, max: 24, step: 1, unit: "dB", defaultVal: 0 },
+  { id: "band2", label: "Body", sub: "500 Hz", min: -24, max: 24, step: 1, unit: "dB", defaultVal: 0 },
+  { id: "band3", label: "Presence", sub: "2 kHz", min: -24, max: 24, step: 1, unit: "dB", defaultVal: 0 },
+  { id: "band4", label: "Crisp", sub: "4 kHz", min: -24, max: 24, step: 1, unit: "dB", defaultVal: 0 },
+  { id: "air", label: "Air", sub: "8 kHz", min: -24, max: 24, step: 1, unit: "dB", defaultVal: 0 },
+];
+
 export default function VoiceEqualizer({ audioUrl }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
 
-  // 5-Band Granular EQ States (Gain in decibels: -24dB to +24dB)
-  const [lowCut, setLowCut] = useState(80); // Highpass filter frequency to remove room rumble
-  const [band1Gain, setBand1Gain] = useState(0); // Sub / Lows (250 Hz)
-  const [band2Gain, setBand2Gain] = useState(0); // Mids / Body (500 Hz)
-  const [band3Gain, setBand3Gain] = useState(0); // Presence / Clarity (2 kHz)
-  const [band4Gain, setBand4Gain] = useState(0); // Highs / Crispness (4 kHz)
-  const [highShelfGain, setHighShelfGain] = useState(0); // Air / Brilliance (8 kHz)
+  // Consolidated EQ State Object
+  const [eqValues, setEqValues] = useState({
+    lowCut: 80,
+    band1: 0,
+    band2: 0,
+    band3: 0,
+    band4: 0,
+    air: 0,
+  });
 
-  // Tone.js Audio Node Refs
+  // Audio Node Refs
   const playerRef = useRef(null);
-  const highpassRef = useRef(null);
+  const filterRef = useRef(null);
   const eqRef = useRef(null);
+  const highShelfRef = useRef(null);
   const limiterRef = useRef(null);
 
+  // Initialize Audio Graph on audioUrl change
   useEffect(() => {
     if (!audioUrl) return;
 
-    // Initialize granular audio routing nodes
-    highpassRef.current = new Tone.Filter({
-      frequency: lowCut,
-      type: "highpass",
-    });
-
+    filterRef.current = new Tone.Filter({ frequency: eqValues.lowCut, type: "highpass" });
+    
     eqRef.current = new Tone.EQ3({
-      low: band1Gain,
-      mid: band2Gain,
-      high: band3Gain,
+      low: eqValues.band1,
+      mid: eqValues.band2,
+      high: eqValues.band3,
       lowFrequency: 300,
       highFrequency: 2500,
     });
 
-    limiterRef.current = new Tone.Limiter(-1); // Prevents audio clipping
+    // Extra filter nodes to handle Band 4 and Air High-Shelf cleanly
+    highShelfRef.current = new Tone.Filter({ frequency: 6000, type: "highshelf", gain: eqValues.air });
+    limiterRef.current = new Tone.Limiter(-1);
 
-    // Load audio file into Tone.Player
     const player = new Tone.Player({
       url: audioUrl,
       autostart: false,
@@ -49,60 +59,60 @@ export default function VoiceEqualizer({ audioUrl }) {
     });
 
     playerRef.current = player;
-    updateRouting();
+    rebuildRouting();
 
     return () => {
       player.dispose();
-      highpassRef.current?.dispose();
+      filterRef.current?.dispose();
       eqRef.current?.dispose();
+      highShelfRef.current?.dispose();
       limiterRef.current?.dispose();
     };
   }, [audioUrl]);
 
-  // Update real-time audio node routing and parameters
-  const updateRouting = () => {
+  // Handle live parameter updates without re-instantiating nodes
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    if (filterRef.current) filterRef.current.frequency.value = eqValues.lowCut;
+    if (eqRef.current) {
+      eqRef.current.low.value = eqValues.band1;
+      eqRef.current.mid.value = eqValues.band2;
+      eqRef.current.high.value = eqValues.band3;
+    }
+    if (highShelfRef.current) highShelfRef.current.gain.value = eqValues.air;
+  }, [eqValues]);
+
+  const rebuildRouting = () => {
     if (!playerRef.current) return;
 
     playerRef.current.disconnect();
-    highpassRef.current?.disconnect();
+    filterRef.current?.disconnect();
     eqRef.current?.disconnect();
+    highShelfRef.current?.disconnect();
     limiterRef.current?.disconnect();
 
     if (!isEnabled) {
-      // Bypass EQ and stream directly to destination
       playerRef.current.toDestination();
       return;
     }
 
-    // Build processing chain: Player -> Highpass -> EQ3 -> Limiter -> Destination
-    let currentNode = playerRef.current;
-
-    if (highpassRef.current) {
-      highpassRef.current.frequency.value = lowCut;
-      currentNode.connect(highpassRef.current);
-      currentNode = highpassRef.current;
-    }
-
-    if (eqRef.current) {
-      eqRef.current.low.value = band1Gain;
-      eqRef.current.mid.value = band2Gain;
-      eqRef.current.high.value = band3Gain;
-      currentNode.connect(eqRef.current);
-      currentNode = eqRef.current;
-    }
-
-    if (limiterRef.current) {
-      currentNode.connect(limiterRef.current);
-      currentNode = limiterRef.current;
-    }
-
-    currentNode.toDestination();
+    // Connect chain: Player -> Highpass -> EQ3 -> HighShelf -> Limiter -> Destination
+    playerRef.current
+      .connect(filterRef.current)
+      .connect(eqRef.current)
+      .connect(highShelfRef.current)
+      .connect(limiterRef.current)
+      .toDestination();
   };
 
-  // Re-run routing updates whenever parameters change
   useEffect(() => {
-    updateRouting();
-  }, [isEnabled, lowCut, band1Gain, band2Gain, band3Gain]);
+    rebuildRouting();
+  }, [isEnabled]);
+
+  const handleSliderChange = (id, val) => {
+    setEqValues((prev) => ({ ...prev, [id]: val }));
+  };
 
   const togglePlay = async () => {
     await Tone.start();
@@ -118,12 +128,7 @@ export default function VoiceEqualizer({ audioUrl }) {
   };
 
   const resetEQ = () => {
-    setLowCut(80);
-    setBand1Gain(0);
-    setBand2Gain(0);
-    setBand3Gain(0);
-    setBand4Gain(0);
-    setHighShelfGain(0);
+    setEqValues({ lowCut: 80, band1: 0, band2: 0, band3: 0, band4: 0, air: 0 });
   };
 
   if (!audioUrl) {
@@ -139,7 +144,7 @@ export default function VoiceEqualizer({ audioUrl }) {
   return (
     <div className="max-w-3xl mx-auto p-8 rounded-3xl bg-white dark:bg-gray-900/90 backdrop-blur-xl border border-gray-200 dark:border-gray-800 shadow-xl space-y-8">
       
-      {/* Header & Controls Toolbar */}
+      {/* Header Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-5">
         <div>
           <h3 className="font-bold text-xl tracking-tight">Granular Voice Equalizer</h3>
@@ -180,139 +185,38 @@ export default function VoiceEqualizer({ audioUrl }) {
         </div>
       </div>
 
-      {/* 5-Band Granular Sliders Grid */}
+      {/* Dynamic Sliders Grid (Mapped cleanly without code repetition) */}
       <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
-        
-        {/* Low-Cut / Rumble Filter */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Low-Cut</span>
-            <div className="text-sm font-mono font-bold text-indigo-400 mt-1">{lowCut} Hz</div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="20"
-              max="300"
-              step="5"
-              value={lowCut}
-              onChange={(e) => setLowCut(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">Rumble Filter</span>
-        </div>
+        {EQ_BANDS.map((band) => {
+          const val = eqValues[band.id];
+          const isPositive = val > 0;
+          const displayVal = band.unit === "dB" && isPositive ? `+${val}` : val;
 
-        {/* Band 1: Sub / Lows (250 Hz) */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Lows</span>
-            <div className={`text-sm font-mono font-bold mt-1 ${band1Gain >= 0 ? "text-indigo-400" : "text-amber-400"}`}>
-              {band1Gain > 0 ? `+${band1Gain}` : band1Gain} dB
+          return (
+            <div key={band.id} className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
+              <div className="text-center">
+                <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{band.label}</span>
+                <div className={`text-sm font-mono font-bold mt-1 ${band.unit === "Hz" ? "text-indigo-400" : isPositive ? "text-indigo-400" : val < 0 ? "text-amber-400" : "text-gray-300"}`}>
+                  {displayVal} {band.unit}
+                </div>
+              </div>
+
+              <div className="h-40 flex items-center justify-center">
+                <input
+                  type="range"
+                  min={band.min}
+                  max={band.max}
+                  step={band.step}
+                  value={val}
+                  onChange={(e) => handleSliderChange(band.id, Number(e.target.value))}
+                  className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
+                />
+              </div>
+
+              <span className="text-[10px] text-gray-500 font-medium text-center">{band.sub}</span>
             </div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="-24"
-              max="24"
-              step="1"
-              value={band1Gain}
-              onChange={(e) => setBand1Gain(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">250 Hz</span>
-        </div>
-
-        {/* Band 2: Mids / Body (500 Hz) */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Body</span>
-            <div className={`text-sm font-mono font-bold mt-1 ${band2Gain >= 0 ? "text-indigo-400" : "text-amber-400"}`}>
-              {band2Gain > 0 ? `+${band2Gain}` : band2Gain} dB
-            </div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="-24"
-              max="24"
-              step="1"
-              value={band2Gain}
-              onChange={(e) => setBand2Gain(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">500 Hz</span>
-        </div>
-
-        {/* Band 3: Presence / Clarity (2 kHz) */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Presence</span>
-            <div className={`text-sm font-mono font-bold mt-1 ${band3Gain >= 0 ? "text-indigo-400" : "text-amber-400"}`}>
-              {band3Gain > 0 ? `+${band3Gain}` : band3Gain} dB
-            </div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="-24"
-              max="24"
-              step="1"
-              value={band3Gain}
-              onChange={(e) => setBand3Gain(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">2 kHz</span>
-        </div>
-
-        {/* Band 4: Highs / Crispness (4 kHz) */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Crisp</span>
-            <div className={`text-sm font-mono font-bold mt-1 ${band4Gain >= 0 ? "text-indigo-400" : "text-amber-400"}`}>
-              {band4Gain > 0 ? `+${band4Gain}` : band4Gain} dB
-            </div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="-24"
-              max="24"
-              step="1"
-              value={band4Gain}
-              onChange={(e) => setBand4Gain(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">4 kHz</span>
-        </div>
-
-        {/* Band 5: Air / Brilliance (8 kHz) */}
-        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-between space-y-4">
-          <div className="text-center">
-            <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Air</span>
-            <div className={`text-sm font-mono font-bold mt-1 ${highShelfGain >= 0 ? "text-indigo-400" : "text-amber-400"}`}>
-              {highShelfGain > 0 ? `+${highShelfGain}` : highShelfGain} dB
-            </div>
-          </div>
-          <div className="h-40 flex items-center justify-center">
-            <input
-              type="range"
-              min="-24"
-              max="24"
-              step="1"
-              value={highShelfGain}
-              onChange={(e) => setHighShelfGain(Number(e.target.value))}
-              className="w-36 -rotate-90 accent-indigo-600 cursor-pointer"
-            />
-          </div>
-          <span className="text-[10px] text-gray-500 font-medium">8 kHz</span>
-        </div>
-
+          );
+        })}
       </div>
 
     </div>

@@ -8,15 +8,26 @@ import {
   TrashIcon, 
   AdjustmentsHorizontalIcon,
   ShieldCheckIcon,
-  SignalIcon
+  SignalIcon,
+  PauseIcon,
+  PlayIcon,
+  Cog6ToothIcon
 } from "@heroicons/react/24/outline";
 
 export default function VoiceRecorder({ onRecordingComplete }) {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // New Feature: Audio Input Devices List
+  const [audioDevices, setAudioDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+
+  // New Feature: Live VU Meter Level (0 to 100)
+  const [audioLevel, setAudioLevel] = useState(0);
 
   // Advanced Studio Settings
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -30,8 +41,32 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
 
+  // Web Audio API refs for VU Meter & Stream Analysis
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animationFrameRef = useRef(null);
+
+  // Fetch available microphone input devices on mount
   useEffect(() => {
-    if (isRecording) {
+    async function getDevices() {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const mics = devices.filter((device) => device.kind === "audioinput");
+        setAudioDevices(mics);
+        if (mics.length > 0) {
+          setSelectedDeviceId(mics[0].deviceId);
+        }
+      } catch (err) {
+        console.error("Error fetching audio devices:", err);
+      }
+    }
+    getDevices();
+  }, []);
+
+  // Timer Management (accounts for pause/resume)
+  useEffect(() => {
+    if (isRecording && !isPaused) {
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
@@ -39,12 +74,46 @@ export default function VoiceRecorder({ onRecordingComplete }) {
       clearInterval(timerRef.current);
     }
     return () => clearInterval(timerRef.current);
-  }, [isRecording]);
+  }, [isRecording, isPaused]);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Start Live VU Meter Analysis
+  const setupAudioAnalyzer = (stream) => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      audioContextRef.current = audioCtx;
+
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const updateMeter = () => {
+        if (!analyserRef.current) return;
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const average = sum / dataArray.length;
+        setAudioLevel(Math.min(100, Math.round((average / 128) * 100)));
+        animationFrameRef.current = requestAnimationFrame(updateMeter);
+      };
+
+      updateMeter();
+    } catch (err) {
+      console.error("Audio analyzer setup failed:", err);
+    }
   };
 
   const startRecording = async () => {
@@ -55,13 +124,17 @@ export default function VoiceRecorder({ onRecordingComplete }) {
     audioChunksRef.current = [];
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         audio: {
+          ...(selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : {}),
           echoCancellation,
           noiseSuppression,
           autoGainControl,
         },
-      });
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      setupAudioAnalyzer(stream);
 
       let mimeType = selectedFormat;
       if (!MediaRecorder.isTypeSupported(mimeType)) {
@@ -98,14 +171,38 @@ export default function VoiceRecorder({ onRecordingComplete }) {
           onRecordingComplete(url);
         }
         stream.getTracks().forEach((track) => track.stop());
+        
+        // Cleanup Audio Context
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+        }
+        cancelAnimationFrame(animationFrameRef.current);
+        setAudioLevel(0);
       };
 
       mediaRecorder.start(100);
       mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
+      setIsPaused(false);
     } catch (err) {
       console.error("Microphone error:", err);
       setErrorMessage("Microphone permission denied or unsupported by browser.");
+    }
+  };
+
+  // Pause Recording Feature
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current && isRecording && !isPaused) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+    }
+  };
+
+  // Resume Recording Feature
+  const resumeRecording = () => {
+    if (mediaRecorderRef.current && isRecording && isPaused) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
     }
   };
 
@@ -113,6 +210,7 @@ export default function VoiceRecorder({ onRecordingComplete }) {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setIsPaused(false);
     }
   };
 
@@ -154,6 +252,31 @@ export default function VoiceRecorder({ onRecordingComplete }) {
       {/* Advanced Studio Configuration Drawer */}
       {showAdvanced && (
         <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn">
+          
+          {/* New Feature: Microphone Hardware Device Picker */}
+          <div className="space-y-1.5 pb-2 border-b border-tertiary/20">
+            <label className="text-[11px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider flex items-center gap-1.5 font-heading">
+              <Cog6ToothIcon className="h-3.5 w-3.5 text-primary" />
+              Audio Input Device (Microphone)
+            </label>
+            <select
+              value={selectedDeviceId}
+              disabled={isRecording}
+              onChange={(e) => setSelectedDeviceId(e.target.value)}
+              className="w-full p-2.5 rounded-xl bg-white dark:bg-dark border border-tertiary/30 text-xs font-sans disabled:opacity-50 focus:outline-none"
+            >
+              {audioDevices.length === 0 ? (
+                <option value="">Default Microphone</option>
+              ) : (
+                audioDevices.map((device) => (
+                  <option key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Microphone ${device.deviceId.slice(0, 5)}...`}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Format Selector */}
@@ -232,19 +355,37 @@ export default function VoiceRecorder({ onRecordingComplete }) {
       {/* Main Recording Console */}
       <div className="flex flex-col items-center justify-center space-y-6 py-4">
         
-        {/* Visualizer Pulse / Mic Badge */}
+        {/* Visualizer Pulse / Mic Badge with Live VU Meter */}
         <div className="relative flex items-center justify-center">
-          {isRecording && (
-            <div className="absolute w-28 h-28 rounded-full bg-danger/20 animate-ping pointer-events-none" />
+          {isRecording && !isPaused && (
+            <div className="absolute w-32 h-32 rounded-full bg-danger/20 animate-ping pointer-events-none" />
           )}
           <div className={`w-24 h-24 rounded-2xl flex items-center justify-center transition-all shadow-lg ${
             isRecording 
-              ? "bg-danger text-white shadow-danger/30 scale-105" 
+              ? isPaused ? "bg-warning text-white shadow-warning/30" : "bg-danger text-white shadow-danger/30 scale-105" 
               : "bg-primary text-white shadow-primary/25"
           }`}>
             <MicrophoneIcon className="h-10 w-10 animate-pulse" />
           </div>
         </div>
+
+        {/* New Feature: Real-time VU Audio Level Bar */}
+        {isRecording && (
+          <div className="w-48 space-y-1">
+            <div className="flex justify-between text-[10px] font-mono text-dark/50 dark:text-light/50 uppercase">
+              <span>Input Level</span>
+              <span>{audioLevel}%</span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-light dark:bg-dark overflow-hidden border border-tertiary/20">
+              <div
+                className={`h-full transition-all duration-75 ${
+                  audioLevel > 80 ? "bg-danger" : audioLevel > 50 ? "bg-warning" : "bg-success"
+                }`}
+                style={{ width: `${audioLevel}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Live Timer & Status */}
         <div className="text-center space-y-1">
@@ -252,11 +393,13 @@ export default function VoiceRecorder({ onRecordingComplete }) {
             {formatTime(recordingTime)}
           </div>
           <p className="text-xs font-bold text-primary font-heading">
-            {isRecording ? "🔴 Recording Live Stream..." : "Ready to Capture"}
+            {isRecording 
+              ? isPaused ? "⏸️ Recording Paused" : "🔴 Recording Live Stream..." 
+              : "Ready to Capture"}
           </p>
         </div>
 
-        {/* Control Button */}
+        {/* Control Buttons (Start, Pause/Resume, Stop) */}
         <div className="flex items-center gap-3">
           {!isRecording ? (
             <button
@@ -267,13 +410,33 @@ export default function VoiceRecorder({ onRecordingComplete }) {
               <span>Start Recording</span>
             </button>
           ) : (
-            <button
-              onClick={stopRecording}
-              className="px-8 py-3.5 rounded-2xl font-bold bg-dark text-light hover:bg-tertiary transition-all shadow-xl border border-danger/40 flex items-center gap-2.5 text-sm"
-            >
-              <StopIcon className="h-5 w-5 text-danger" />
-              <span>Stop & Process</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {isPaused ? (
+                <button
+                  onClick={resumeRecording}
+                  className="px-5 py-3.5 rounded-2xl font-bold bg-success text-white hover:opacity-90 transition-all shadow-lg flex items-center gap-2 text-sm"
+                >
+                  <PlayIcon className="h-4 w-4" />
+                  <span>Resume</span>
+                </button>
+              ) : (
+                <button
+                  onClick={pauseRecording}
+                  className="px-5 py-3.5 rounded-2xl font-bold bg-warning text-white hover:opacity-90 transition-all shadow-lg flex items-center gap-2 text-sm"
+                >
+                  <PauseIcon className="h-4 w-4" />
+                  <span>Pause</span>
+                </button>
+              )}
+
+              <button
+                onClick={stopRecording}
+                className="px-6 py-3.5 rounded-2xl font-bold bg-dark text-light hover:bg-tertiary transition-all shadow-xl border border-danger/40 flex items-center gap-2 text-sm"
+              >
+                <StopIcon className="h-5 w-5 text-danger" />
+                <span>Stop & Process</span>
+              </button>
+            </div>
           )}
         </div>
       </div>

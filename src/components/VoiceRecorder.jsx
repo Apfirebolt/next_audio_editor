@@ -13,7 +13,8 @@ import {
   PlayIcon,
   Cog6ToothIcon,
   SparklesIcon,
-  MusicalNoteIcon
+  MusicalNoteIcon,
+  PencilSquareIcon
 } from "@heroicons/react/24/outline";
 
 export default function VoiceRecorder({ onRecordingComplete }) {
@@ -23,6 +24,9 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   const [audioBlob, setAudioBlob] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // New Feature: Custom File Name State
+  const [customFileName, setCustomFileName] = useState("studio-vocal-take-1");
 
   // Audio Input Devices List
   const [audioDevices, setAudioDevices] = useState([]);
@@ -39,14 +43,17 @@ export default function VoiceRecorder({ onRecordingComplete }) {
   const [echoCancellation, setEchoCancellation] = useState(true);
   const [autoGainControl, setAutoGainControl] = useState(true);
 
-  // --- NEW FEATURE: Professional Voice Effects Rack State ---
+  // --- NEW LOGIC PRO / GARAGEBAND STUDIO SETTINGS ---
+  const [inputGain, setInputGain] = useState(0); // -12dB to +12dB
+  const [monitoringMode, setMonitoringMode] = useState("dry"); // dry, processed
+  const [roomPreset, setRoomPreset] = useState("booth"); // booth, hall, arena
+
+  // Professional Voice Effects Rack State
   const [showEffects, setShowEffects] = useState(false);
   const [enablePitchShift, setEnablePitchShift] = useState(false);
   const [pitchSemitones, setPitchSemitones] = useState(0); // -12 to +12
   const [enableDrive, setEnableDrive] = useState(false);
-  const [driveAmount, setDriveAmount] = useState(0.3); // 0 to 1
-  const [enableRadio, setEnableRadio] = useState(false); // Lo-Fi telephone/radio filter
-  const [enableChorus, setEnableChorus] = useState(false);
+  const [driveAmount, setDriveAmount] = useState(0.3);
 
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -229,6 +236,8 @@ export default function VoiceRecorder({ onRecordingComplete }) {
     return "webm";
   };
 
+  const sanitizedFileName = customFileName.trim() ? customFileName.replace(/[^a-zA-Z0-9-_]/g, "_") : "studio-vocal-take";
+
   return (
     <div className="max-w-2xl mx-auto p-8 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 shadow-xl space-y-6" data-aos="fade-up">
       
@@ -261,7 +270,7 @@ export default function VoiceRecorder({ onRecordingComplete }) {
             }`}
           >
             <AdjustmentsHorizontalIcon className="h-4 w-4" />
-            <span>{showAdvanced ? "Hide Hardware DSP" : "Hardware & Formats"}</span>
+            <span>{showAdvanced ? "Hide Hardware DSP" : "Logic Pro Settings"}</span>
           </button>
         </div>
       </div>
@@ -272,7 +281,7 @@ export default function VoiceRecorder({ onRecordingComplete }) {
         </div>
       )}
 
-      {/* --- NEW FEATURE: Professional Voice Effects Rack Drawer --- */}
+      {/* --- PROFESSIONAL VOICE EFFECTS RACK DRAWER --- */}
       {showEffects && (
         <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn font-sans">
           <div className="flex items-center justify-between border-b border-tertiary/20 pb-2">
@@ -372,9 +381,9 @@ export default function VoiceRecorder({ onRecordingComplete }) {
         </div>
       )}
 
-      {/* Advanced Studio Configuration Drawer */}
+      {/* --- ADVANCED LOGIC PRO & HARDWARE STUDIO SETTINGS DRAWER --- */}
       {showAdvanced && (
-        <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn">
+        <div className="p-5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-4 animate-fadeIn font-sans">
           
           {/* Microphone Hardware Device Picker */}
           <div className="space-y-1.5 pb-2 border-b border-tertiary/20">
@@ -398,6 +407,58 @@ export default function VoiceRecorder({ onRecordingComplete }) {
                 ))
               )}
             </select>
+          </div>
+
+          {/* New Logic Pro / GarageBand Studio Options */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2 border-b border-tertiary/20">
+            
+            {/* Input Gain Slider */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider">Input Gain</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="-12"
+                  max="12"
+                  step="1"
+                  value={inputGain}
+                  disabled={isRecording}
+                  onChange={(e) => setInputGain(parseInt(e.target.value))}
+                  className="w-full accent-primary cursor-pointer disabled:opacity-40"
+                />
+                <span className="font-mono text-[10px] text-primary font-bold min-w-8">{inputGain > 0 ? `+${inputGain}` : inputGain}dB</span>
+              </div>
+            </div>
+
+            {/* Monitoring Mode */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider">Monitoring</label>
+              <select
+                value={monitoringMode}
+                disabled={isRecording}
+                onChange={(e) => setMonitoringMode(e.target.value)}
+                className="w-full p-2 rounded-lg bg-white dark:bg-dark border border-tertiary/30 text-xs font-mono disabled:opacity-50 focus:outline-none"
+              >
+                <option value="dry">Direct Dry</option>
+                <option value="processed">Studio Processed</option>
+              </select>
+            </div>
+
+            {/* Room Acoustics Simulator */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider">Room Acoustic</label>
+              <select
+                value={roomPreset}
+                disabled={isRecording}
+                onChange={(e) => setRoomPreset(e.target.value)}
+                className="w-full p-2 rounded-lg bg-white dark:bg-dark border border-tertiary/30 text-xs font-mono disabled:opacity-50 focus:outline-none"
+              >
+                <option value="booth">Studio Booth (Dry)</option>
+                <option value="hall">Vocal Hall</option>
+                <option value="arena">Arena Stage</option>
+              </select>
+            </div>
+
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -478,8 +539,24 @@ export default function VoiceRecorder({ onRecordingComplete }) {
       {/* Main Recording Console */}
       <div className="flex flex-col items-center justify-center space-y-6 py-4">
         
+        {/* --- NEW FEATURE: Custom Recording File Naming --- */}
+        <div className="w-full max-w-sm space-y-1">
+          <label className="text-[11px] font-bold text-dark/50 dark:text-light/50 uppercase tracking-wider flex items-center gap-1 font-heading">
+            <PencilSquareIcon className="h-3.5 w-3.5 text-primary" />
+            Session Take Filename
+          </label>
+          <input
+            type="text"
+            value={customFileName}
+            disabled={isRecording}
+            onChange={(e) => setCustomFileName(e.target.value)}
+            placeholder="e.g. Lead_Vocals_Take_1"
+            className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-dark border border-tertiary/30 text-xs font-mono text-dark dark:text-light focus:outline-none focus:border-primary disabled:opacity-50 shadow-inner"
+          />
+        </div>
+
         {/* Visualizer Pulse / Mic Badge with Live VU Meter */}
-        <div className="relative flex items-center justify-center">
+        <div className="relative flex items-center justify-center pt-2">
           {isRecording && !isPaused && (
             <div className="absolute w-32 h-32 rounded-full bg-danger/20 animate-ping pointer-events-none" />
           )}
@@ -586,11 +663,11 @@ export default function VoiceRecorder({ onRecordingComplete }) {
           <div className="flex justify-end pt-2">
             <a
               href={audioUrl}
-              download={`studio-recording.${getFileExtension(audioBlob?.type || "audio/webm")}`}
+              download={`${sanitizedFileName}.${getFileExtension(audioBlob?.type || "audio/webm")}`}
               className="px-6 py-3 rounded-xl font-bold bg-primary text-white hover:bg-secondary transition-all flex items-center gap-2 shadow-lg shadow-primary/20 text-sm"
             >
               <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Download Master File</span>
+              <span>Download "{sanitizedFileName}"</span>
             </a>
           </div>
         </div>

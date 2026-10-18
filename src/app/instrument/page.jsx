@@ -305,7 +305,7 @@ export default function InstrumentPage() {
   };
 
   const deleteTrack = (id) => {
-    if (tracks.length <= 1) return; // Keep at least 1 track
+    if (tracks.length <= 1) return;
     setTracks((prev) => prev.filter((t) => t.id !== id));
     setRecordedClips((prev) => prev.filter((c) => c.trackId !== id));
     if (selectedTargetTrackId === id) {
@@ -378,38 +378,39 @@ export default function InstrumentPage() {
   }, [resizingClipId, draggingClipId]);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-light dark:bg-dark text-dark dark:text-light flex flex-col font-sans selection:bg-primary selection:text-white">
       <Header />
 
-      <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12 space-y-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12 space-y-10">
+        
+        {/* Top Header & Navigation Tabs */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4" data-aos="fade-down">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight font-heading">
               Virtual Synth & Multi-Track Studio
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Arrange MIDI notes across up to 5 tracks, resize blocks by
-              dragging, and sculpt sound.
+            <p className="text-dark/60 dark:text-light/65 text-sm font-sans">
+              Arrange MIDI notes across up to 5 tracks, resize blocks by dragging, and sculpt sound.
             </p>
           </div>
 
-          <div className="flex p-1 rounded-xl bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+          <div className="flex p-1.5 rounded-2xl bg-tertiary/10 dark:bg-tertiary/5 border border-tertiary/20 backdrop-blur-xl">
             <button
               onClick={() => setActiveTab("synth")}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                 activeTab === "synth"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                  ? "bg-primary text-white shadow-md shadow-primary/25"
+                  : "text-dark/70 dark:text-light/70 hover:text-primary"
               }`}
             >
               Virtual Instruments
             </button>
             <button
               onClick={() => setActiveTab("mic")}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+              className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                 activeTab === "mic"
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                  ? "bg-primary text-white shadow-md shadow-primary/25"
+                  : "text-dark/70 dark:text-light/70 hover:text-primary"
               }`}
             >
               <MicrophoneIcon className="h-4 w-4" />
@@ -419,60 +420,60 @@ export default function InstrumentPage() {
         </div>
 
         {activeTab === "synth" && (
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">
-                Select Instrument Preset
+          <div className="space-y-10">
+            
+            {/* INSTRUMENT PRESET GRID */}
+            <div className="space-y-4" data-aos="fade-up">
+              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-dark/50 dark:text-light/50">
+                Select Instrument Preset ({INSTRUMENTS.length} Available)
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[340px] overflow-y-auto pr-2">
                 {INSTRUMENTS.map((inst) => (
                   <button
                     key={inst.id}
                     onClick={() => handleInstrumentChange(inst)}
-                    className={`p-4 rounded-xl border text-left transition-all space-y-1 ${
+                    className={`p-4 rounded-2xl border text-left transition-all space-y-1.5 group ${
                       selectedInstrument.id === inst.id
-                        ? "border-indigo-500 bg-indigo-500/10 text-indigo-400 shadow-md shadow-indigo-500/10"
-                        : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 hover:border-gray-400"
+                        ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10 scale-[1.02]"
+                        : "border-tertiary/20 bg-white/60 dark:bg-dark/60 hover:border-primary/50 text-dark dark:text-light"
                     }`}
                   >
-                    <MusicalNoteIcon className="h-5 w-5 mb-2" />
-                    <p className="font-semibold text-sm truncate">
-                      {inst.name}
-                    </p>
-                    <p className="text-xs text-gray-500 capitalize">
-                      {inst.type} synthesis
-                    </p>
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <MusicalNoteIcon className="h-4 w-4 text-primary" />
+                    </div>
+                    <p className="font-bold text-xs truncate font-heading">{inst.name}</p>
+                    <p className="text-[10px] text-dark/50 dark:text-light/50 uppercase tracking-wide">{inst.type} synth</p>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* MULTI-TRACK GARAGEBAND TIMELINE (UP TO 5 TRACKS) */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 space-y-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+            {/* MULTI-TRACK GARAGEBAND TIMELINE */}
+            <div className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="100">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-tertiary/20 pb-4">
                 <div className="flex items-center gap-3">
-                  <SparklesIcon className="h-6 w-6 text-indigo-500" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                    <SparklesIcon className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <h3 className="font-bold text-base">
+                    <h3 className="font-bold text-base font-heading">
                       Multi-Track Arrangement Timeline ({tracks.length}/5)
                     </h3>
-                    <p className="text-xs text-gray-500">
-                      Record notes into selected track, drag blocks to move, or
-                      resize right edge.
+                    <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
+                      Record notes into selected track, drag blocks to move, or resize right edge.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  {/* Target Recording Track Selector */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-gray-400">Record to:</span>
+                  <div className="flex items-center gap-2 text-xs font-sans">
+                    <span className="text-dark/50 dark:text-light/50">Record to:</span>
                     <select
                       value={selectedTargetTrackId}
                       onChange={(e) =>
                         setSelectedTargetTrackId(Number(e.target.value))
                       }
-                      className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 font-semibold"
+                      className="p-2 rounded-xl bg-light dark:bg-dark border border-tertiary/30 font-bold text-primary focus:outline-none"
                     >
                       {tracks.map((t) => (
                         <option key={t.id} value={t.id}>
@@ -485,7 +486,7 @@ export default function InstrumentPage() {
                   {tracks.length < 5 && (
                     <button
                       onClick={addTrack}
-                      className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-xs font-semibold flex items-center gap-1 border border-gray-300 dark:border-gray-700"
+                      className="px-3.5 py-2 rounded-xl bg-tertiary/20 hover:bg-tertiary/30 text-dark dark:text-light text-xs font-bold flex items-center gap-1.5 border border-tertiary/30 transition-all"
                     >
                       <PlusIcon className="h-3.5 w-3.5" />
                       <span>Add Track</span>
@@ -494,31 +495,27 @@ export default function InstrumentPage() {
 
                   <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition-all flex items-center gap-2 text-xs shadow-md"
+                    className="px-4 py-2 rounded-xl font-bold bg-primary hover:bg-secondary text-white transition-all flex items-center gap-2 text-xs shadow-md shadow-primary/20"
                   >
                     <MusicalNoteIcon className="h-4 w-4" />
-                    <span>Open Full Arrangement Player</span>
+                    <span>Master Player</span>
                   </button>
 
                   {recordedClips.length > 0 && (
                     <button
                       onClick={playArrangement}
                       disabled={isPlayingArrangement}
-                      className="px-4 py-2 rounded-xl font-semibold bg-emerald-600 text-white hover:bg-emerald-500 transition-all flex items-center gap-2 text-xs shadow-md"
+                      className="px-4 py-2 rounded-xl font-bold bg-success text-white hover:opacity-90 transition-all flex items-center gap-2 text-xs shadow-md"
                     >
                       <PlayIcon className="h-4 w-4" />
-                      <span>
-                        {isPlayingArrangement
-                          ? "Playing..."
-                          : "Play Arrangement"}
-                      </span>
+                      <span>{isPlayingArrangement ? "Playing..." : "Play Mix"}</span>
                     </button>
                   )}
 
                   {!isRecording ? (
                     <button
                       onClick={startRecording}
-                      className="px-5 py-2 rounded-xl font-semibold bg-red-600 text-white hover:bg-red-500 transition-all flex items-center gap-2 text-xs shadow-lg shadow-red-600/20"
+                      className="px-5 py-2 rounded-xl font-bold bg-danger text-white hover:opacity-90 transition-all flex items-center gap-2 text-xs shadow-lg shadow-danger/25"
                     >
                       <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                       <span>Record</span>
@@ -526,9 +523,9 @@ export default function InstrumentPage() {
                   ) : (
                     <button
                       onClick={stopRecording}
-                      className="px-5 py-2 rounded-xl font-semibold bg-gray-800 text-white hover:bg-gray-700 transition-all flex items-center gap-2 text-xs animate-pulse"
+                      className="px-5 py-2 rounded-xl font-bold bg-dark text-light hover:bg-tertiary transition-all flex items-center gap-2 text-xs animate-pulse border border-danger/50"
                     >
-                      <StopIcon className="h-4 w-4 text-red-400" />
+                      <StopIcon className="h-4 w-4 text-danger" />
                       <span>Stop</span>
                     </button>
                   )}
@@ -545,17 +542,17 @@ export default function InstrumentPage() {
                   return (
                     <div
                       key={track.id}
-                      className="p-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 space-y-2"
+                      className="p-3.5 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20 space-y-2"
                     >
                       <div className="flex items-center justify-between text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-indigo-400">
+                          <span className="font-bold text-primary font-heading">
                             {track.name}
                           </span>
                           {selectedTargetTrackId === track.id &&
                             isRecording && (
-                              <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-500 text-[10px] font-bold animate-pulse">
-                                RECORDING
+                              <span className="px-2 py-0.5 rounded-md bg-danger/20 text-danger text-[10px] font-bold animate-pulse">
+                                ● RECORDING
                               </span>
                             )}
                         </div>
@@ -571,18 +568,18 @@ export default function InstrumentPage() {
                                 ),
                               );
                             }}
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors ${
                               track.muted
-                                ? "bg-red-500/20 text-red-400"
-                                : "bg-gray-200 dark:bg-gray-800 text-gray-400"
+                                ? "bg-danger/20 text-danger border border-danger/30"
+                                : "bg-success/20 text-success border border-success/30"
                             }`}
                           >
-                            {track.muted ? "Muted" : "Active"}
+                            {track.muted ? "MUTED" : "ACTIVE"}
                           </button>
                           {tracks.length > 1 && (
                             <button
                               onClick={() => deleteTrack(track.id)}
-                              className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                              className="text-dark/40 dark:text-light/40 hover:text-danger transition-colors p-1"
                               title="Delete Track"
                             >
                               <TrashIcon className="h-3.5 w-3.5" />
@@ -592,11 +589,10 @@ export default function InstrumentPage() {
                       </div>
 
                       {/* Track Lane Horizontal Scroll Area */}
-                      <div className="relative h-20 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-x-auto overflow-y-hidden p-2 flex items-center">
+                      <div className="relative h-20 rounded-xl bg-white dark:bg-dark border border-tertiary/20 overflow-x-auto overflow-y-hidden p-2 flex items-center shadow-inner">
                         {trackClips.length === 0 ? (
-                          <div className="w-full text-center text-[11px] text-gray-400">
-                            Empty Track. Select this track in top toolbar and
-                            play notes to record blocks.
+                          <div className="w-full text-center text-[11px] text-dark/40 dark:text-light/40 font-sans">
+                            Empty Track. Select this track in top toolbar and play notes to record blocks.
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 min-w-full relative h-full pt-1">
@@ -610,7 +606,7 @@ export default function InstrumentPage() {
                                   marginLeft: `${clip.offset * 40}px`,
                                   width: `${Math.max(clip.duration * 60, 60)}px`,
                                 }}
-                                className="group relative h-16 rounded-lg bg-indigo-600/90 border border-indigo-400 text-white p-2 flex flex-col justify-between shadow-md cursor-grab active:cursor-grabbing hover:bg-indigo-500 transition-colors"
+                                className="group relative h-16 rounded-xl bg-primary border border-tertiary/40 text-white p-2.5 flex flex-col justify-between shadow-lg cursor-grab active:cursor-grabbing hover:bg-secondary transition-all"
                               >
                                 <div className="flex items-center justify-between text-[10px] font-mono">
                                   <span className="font-bold">{clip.note}</span>
@@ -619,23 +615,20 @@ export default function InstrumentPage() {
                                       e.stopPropagation();
                                       deleteClip(clip.id);
                                     }}
-                                    className="opacity-0 group-hover:opacity-100 text-white hover:text-red-300 transition-opacity"
+                                    className="opacity-0 group-hover:opacity-100 text-white hover:text-danger transition-opacity"
                                   >
-                                    <TrashIcon className="h-3 w-3" />
+                                    <TrashIcon className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
 
-                                <div className="flex items-center justify-between text-[9px] text-indigo-200">
-                                  <span className="truncate">
-                                    {clip.instrumentName}
-                                  </span>
-                                  {/* Track Switcher Dropdown */}
+                                <div className="flex items-center justify-between text-[9px] text-light/80">
+                                  <span className="truncate font-sans">{clip.instrumentName}</span>
                                   <select
                                     value={clip.trackId}
                                     onChange={(e) =>
                                       changeClipTrack(clip.id, e.target.value)
                                     }
-                                    className="bg-indigo-900 text-white rounded text-[9px] px-1 py-0.5 border border-indigo-400 cursor-pointer"
+                                    className="bg-dark text-light rounded px-1.5 py-0.5 border border-tertiary/30 cursor-pointer text-[9px] font-mono"
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     {tracks.map((t) => (
@@ -646,12 +639,11 @@ export default function InstrumentPage() {
                                   </select>
                                 </div>
 
-                                {/* Right Edge Resize Handle */}
                                 <div
                                   onMouseDown={(e) =>
                                     handleResizeStart(e, clip.id, clip.duration)
                                   }
-                                  className="absolute right-0 top-0 bottom-0 w-2.5 bg-indigo-400/40 hover:bg-white cursor-ew-resize rounded-r-lg transition-colors flex items-center justify-center"
+                                  className="absolute right-0 top-0 bottom-0 w-3 bg-white/20 hover:bg-white cursor-ew-resize rounded-r-xl transition-colors flex items-center justify-center"
                                   title="Drag to resize tone duration"
                                 />
                               </div>
@@ -665,20 +657,23 @@ export default function InstrumentPage() {
               </div>
             </div>
 
-            {/* Effects Rack */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 shadow-sm">
+            {/* EFFECTS RACK */}
+            <div className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="200">
               <div className="flex items-center gap-3">
-                <AdjustmentsHorizontalIcon className="h-6 w-6 text-indigo-500" />
-                <h3 className="font-semibold text-lg">Pro Effects Rack</h3>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <AdjustmentsHorizontalIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg font-heading">Pro Effects Rack</h3>
+                  <p className="text-xs text-dark/60 dark:text-light/60 font-sans">Sculpt live frequencies, overdrive, delay, and reverb chains.</p>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                  <div className="flex justify-between items-center text-sm font-medium">
+                <div className="space-y-3 p-4 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20">
+                  <div className="flex justify-between items-center text-xs font-bold font-heading">
                     <span>Filter Cutoff</span>
-                    <span className="font-mono text-xs text-indigo-400">
-                      {filterCutoff} Hz
-                    </span>
+                    <span className="font-mono text-primary">{filterCutoff} Hz</span>
                   </div>
                   <input
                     type="range"
@@ -687,20 +682,18 @@ export default function InstrumentPage() {
                     step="100"
                     value={filterCutoff}
                     onChange={(e) => setFilterCutoff(Number(e.target.value))}
-                    className="w-full accent-indigo-600 cursor-pointer"
+                    className="w-full accent-primary cursor-pointer"
                   />
                 </div>
 
-                <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">
-                      Overdrive Distortion
-                    </span>
+                <div className="space-y-3 p-4 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20">
+                  <div className="flex justify-between items-center text-xs font-bold font-heading">
+                    <span>Overdrive Distortion</span>
                     <input
                       type="checkbox"
                       checked={enableDistortion}
                       onChange={(e) => setEnableDistortion(e.target.checked)}
-                      className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                      className="accent-primary h-4 w-4 cursor-pointer"
                     />
                   </div>
                   <input
@@ -713,25 +706,25 @@ export default function InstrumentPage() {
                     onChange={(e) =>
                       setDistortionAmount(Number(e.target.value))
                     }
-                    className="w-full accent-indigo-600 cursor-pointer disabled:opacity-40"
+                    className="w-full accent-primary cursor-pointer disabled:opacity-40"
                   />
                 </div>
 
-                <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Echo Delay</span>
+                <div className="space-y-3 p-4 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20">
+                  <div className="flex justify-between items-center text-xs font-bold font-heading">
+                    <span>Echo Delay</span>
                     <input
                       type="checkbox"
                       checked={enableDelay}
                       onChange={(e) => setEnableDelay(e.target.checked)}
-                      className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                      className="accent-primary h-4 w-4 cursor-pointer"
                     />
                   </div>
                   <select
                     value={delayTime}
                     disabled={!enableDelay}
                     onChange={(e) => setDelayTime(e.target.value)}
-                    className="w-full p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-sm disabled:opacity-40"
+                    className="w-full p-2.5 rounded-xl bg-white dark:bg-dark border border-tertiary/30 text-xs font-mono disabled:opacity-40 focus:outline-none"
                   >
                     <option value="8n">Eighth Note</option>
                     <option value="4n">Quarter Note</option>
@@ -741,37 +734,35 @@ export default function InstrumentPage() {
               </div>
             </div>
 
-            {/* Interactive Keypad with Layout Switcher */}
-            <div className="p-8 rounded-2xl bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800 space-y-6 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+            {/* INTERACTIVE KEYPAD */}
+            <div className="p-8 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="300">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-tertiary/20 pb-4">
                 <div>
-                  <h3 className="font-semibold text-lg">
-                    Interactive Studio Keypad
-                  </h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="font-bold text-lg font-heading">Interactive Studio Keypad</h3>
+                  <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
                     {keyboardMode === "21"
                       ? "Standard 21-Key Layout"
                       : "Expanded 37-Key Pro Layout"}
                   </p>
                 </div>
 
-                <div className="flex p-1 rounded-xl bg-gray-100 dark:bg-gray-950 border border-gray-200 dark:border-gray-800">
+                <div className="flex p-1 rounded-xl bg-tertiary/10 border border-tertiary/20">
                   <button
                     onClick={() => setKeyboardMode("21")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       keyboardMode === "21"
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-gray-500 hover:text-gray-900"
+                        ? "bg-primary text-white shadow-md"
+                        : "text-dark/70 dark:text-light/70 hover:text-primary"
                     }`}
                   >
                     21-Key Standard
                   </button>
                   <button
                     onClick={() => setKeyboardMode("37")}
-                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                       keyboardMode === "37"
-                        ? "bg-indigo-600 text-white shadow-md"
-                        : "text-gray-500 hover:text-gray-900"
+                        ? "bg-primary text-white shadow-md"
+                        : "text-dark/70 dark:text-light/70 hover:text-primary"
                     }`}
                   >
                     37-Key Pro
@@ -794,23 +785,21 @@ export default function InstrumentPage() {
                     onMouseLeave={() => stopNote(k.note)}
                     onTouchStart={() => playNote(k.note)}
                     onTouchEnd={() => stopNote(k.note)}
-                    className={`h-32 rounded-lg border flex flex-col items-center justify-between p-2 transition-all select-none min-w-[32px] ${
+                    className={`h-32 rounded-xl border flex flex-col items-center justify-between p-2.5 transition-all select-none min-w-[34px] shadow-sm ${
                       k.note.includes("#")
-                        ? "bg-gray-900 text-gray-200 border-gray-700"
-                        : "bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-800 text-gray-800 dark:text-gray-200"
+                        ? "bg-dark text-light border-tertiary/50"
+                        : "bg-light dark:bg-dark/90 border-tertiary/30 text-dark dark:text-light"
                     } ${
                       activeNotes[k.note]
-                        ? "!bg-indigo-600 !text-white !border-indigo-500 scale-95 shadow-inner"
-                        : "hover:border-indigo-500"
+                        ? "!bg-primary !text-white !border-primary scale-95 shadow-inner"
+                        : "hover:border-primary"
                     }`}
                   >
-                    <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-tertiary/20 text-dark/70 dark:text-light/70">
                       {k.key}
                     </span>
-                    <span className="font-bold text-[10px] sm:text-[11px] font-mono">
-                      {k.label}
-                    </span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 opacity-40"></span>
+                    <span className="font-bold text-[10px] sm:text-[11px] font-mono">{k.label}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary opacity-60"></span>
                   </button>
                 ))}
               </div>
@@ -820,17 +809,17 @@ export default function InstrumentPage() {
 
         {/* TAB 2: VOICE STUDIO */}
         {activeTab === "mic" && (
-          <div className="space-y-8 animate-fadeIn">
+          <div className="space-y-8 animate-fadeIn" data-aos="fade-up">
             <VoiceRecorder
               onRecordingComplete={(url) => setLatestMicAudioUrl(url)}
             />
 
-            <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-              <div className="max-w-3xl mx-auto mb-4 text-center">
-                <h4 className="font-bold text-lg">
+            <div className="pt-6 border-t border-tertiary/20">
+              <div className="max-w-3xl mx-auto mb-6 text-center space-y-1">
+                <h4 className="font-bold text-lg font-heading">
                   Post-Production Voice Mixing
                 </h4>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
                   Apply granular EQ shaping on your recorded vocal tracks.
                 </p>
               </div>
@@ -839,7 +828,7 @@ export default function InstrumentPage() {
           </div>
         )}
 
-        {/* Modal Component at bottom of page */}
+        {/* Modal Component */}
         <PlayInstrumentModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

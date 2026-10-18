@@ -1031,18 +1031,22 @@ export default function AudioEditorPage() {
       <Header />
 
       <main className="flex-grow max-w-5xl mx-auto w-full px-6 py-12 space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
+        <div className="space-y-2" data-aos="fade-down">
+          <h1 className="text-3xl font-extrabold tracking-tight font-heading">
             Professional Studio Rack
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-dark/60 dark:text-light/60 text-sm font-sans">
             Upload vocals or instrument tracks, apply professional studio
             processing, compression, and pitch adjustments.
           </p>
         </div>
 
-        {/* Upload Box */}
-        <div className="border-2 border-dashed border-gray-300 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/50 dark:bg-gray-900/30 hover:border-indigo-500/50 transition-colors">
+        {/* Upload Box with AOS */}
+        <div
+          className="border-2 border-dashed border-tertiary/40 rounded-3xl p-10 text-center bg-white/40 dark:bg-dark/40 backdrop-blur-xl hover:border-primary/50 transition-all shadow-sm"
+          data-aos="fade-up"
+          data-aos-delay="100"
+        >
           <input
             type="file"
             id="audio-upload"
@@ -1054,24 +1058,23 @@ export default function AudioEditorPage() {
             htmlFor="audio-upload"
             className="cursor-pointer flex flex-col items-center space-y-4"
           >
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-              <ArrowUpTrayIcon className="h-6 w-6" />
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+              <ArrowUpTrayIcon className="h-7 w-7" />
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-sm">
+              <p className="font-bold text-sm font-heading">
                 {fileName ? (
-                  <span className="text-indigo-400">{fileName}</span>
+                  <span className="text-primary">{fileName}</span>
                 ) : (
                   "Click to upload vocal track or drag & drop"
                 )}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-dark/50 dark:text-light/50 font-sans">
                 Supports MP3, WAV, FLAC, OGG, M4A
               </p>
             </div>
           </label>
         </div>
-
         {errorMessage && (
           <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
             {errorMessage}
@@ -1275,31 +1278,31 @@ export default function AudioEditorPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* 0. Noise Cancellation & Rumble Gate */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <ShieldCheckIcon className="h-4 w-4 text-emerald-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <ShieldCheckIcon className="h-4 w-4 text-success" />
                     Noise Cancel / Gate
                   </span>
                   <input
                     type="checkbox"
                     checked={enableNoiseCancel}
                     onChange={(e) => setEnableNoiseCancel(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Filters sub-75Hz mic rumble & cuts out room hiss when vocals
                   pause.
                 </p>
                 {enableNoiseCancel && (
-                  <div className="space-y-2 pt-1">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-3 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Noise Gate Cutoff</span>
-                        <span className="font-mono text-emerald-400">
+                        <span className="font-mono text-success font-bold">
                           {noiseGateThreshold} dB
                         </span>
                       </div>
@@ -1312,13 +1315,13 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setNoiseGateThreshold(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Gate Release Speed</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {Math.round(noiseSmoothing * 1000)}ms
                         </span>
                       </div>
@@ -1331,7 +1334,7 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setNoiseSmoothing(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
                   </div>
@@ -1339,27 +1342,27 @@ export default function AudioEditorPage() {
               </div>
 
               {/* 1. Studio Compressor */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <AdjustmentsHorizontalIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <AdjustmentsHorizontalIcon className="h-4 w-4 text-primary" />
                     Studio Compressor
                   </span>
                   <input
                     type="checkbox"
                     checked={enableCompressor}
                     onChange={(e) => setEnableCompressor(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Tames peaks & dynamics for a tight broadcast mix.
                 </p>
                 {enableCompressor && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Threshold</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {compressorThreshold} dB
                       </span>
                     </div>
@@ -1372,35 +1375,35 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setCompressorThreshold(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 2. 3-Band Equalizer & Vocal Presence */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <SparklesIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <SparklesIcon className="h-4 w-4 text-primary" />
                     3-Band Studio EQ
                   </span>
                   <input
                     type="checkbox"
                     checked={enableEQ}
                     onChange={(e) => setEnableEQ(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Shape tonal balance across low, mid, and highs.
                 </p>
                 {enableEQ && (
-                  <div className="space-y-2 pt-1">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-3 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Bass Low</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {eqLow > 0 ? `+${eqLow}` : eqLow} dB
                         </span>
                       </div>
@@ -1411,13 +1414,13 @@ export default function AudioEditorPage() {
                         step="1"
                         value={eqLow}
                         onChange={(e) => setEqLow(parseFloat(e.target.value))}
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Mid Range</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {eqMid > 0 ? `+${eqMid}` : eqMid} dB
                         </span>
                       </div>
@@ -1428,13 +1431,13 @@ export default function AudioEditorPage() {
                         step="1"
                         value={eqMid}
                         onChange={(e) => setEqMid(parseFloat(e.target.value))}
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Treble High</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {eqHigh > 0 ? `+${eqHigh}` : eqHigh} dB
                         </span>
                       </div>
@@ -1445,16 +1448,16 @@ export default function AudioEditorPage() {
                         step="1"
                         value={eqHigh}
                         onChange={(e) => setEqHigh(parseFloat(e.target.value))}
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <label className="flex items-center justify-between text-xs text-gray-400 pt-1 cursor-pointer">
+                    <label className="flex items-center justify-between text-xs text-dark/60 dark:text-light/60 pt-1 cursor-pointer font-bold">
                       <span>Air Sparkle Boost (+6dB)</span>
                       <input
                         type="checkbox"
                         checked={vocalPresence}
                         onChange={(e) => setVocalPresence(e.target.checked)}
-                        className="accent-indigo-600 h-3.5 w-3.5"
+                        className="accent-primary h-3.5 w-3.5 rounded"
                       />
                     </label>
                   </div>
@@ -1462,20 +1465,20 @@ export default function AudioEditorPage() {
               </div>
 
               {/* 3. Pitch Shift */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <MusicalNoteIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <MusicalNoteIcon className="h-4 w-4 text-primary" />
                     Pitch Shift
                   </span>
-                  <span className="text-xs font-mono text-indigo-400">
+                  <span className="text-xs font-mono text-primary font-bold">
                     {pitchShift > 0 ? `+${pitchShift}` : pitchShift} st
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Semitone transposition (-12 to +12 octaves).
                 </p>
-                <div className="space-y-2 pt-1">
+                <div className="space-y-3 pt-2 border-t border-tertiary/10 font-sans">
                   <input
                     type="range"
                     min="-12"
@@ -1483,25 +1486,25 @@ export default function AudioEditorPage() {
                     step="1"
                     value={pitchShift}
                     onChange={(e) => setPitchShift(parseInt(e.target.value))}
-                    className="w-full accent-indigo-600 cursor-pointer"
+                    className="w-full accent-primary cursor-pointer"
                   />
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center pt-1">
                     <button
                       onClick={() => setPitchShift(0)}
-                      className="text-[11px] text-gray-500 hover:text-indigo-400 underline"
+                      className="text-xs text-dark/50 dark:text-light/50 hover:text-primary underline font-bold"
                     >
                       Reset (0 st)
                     </button>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1.5">
                       <button
                         onClick={() => setPitchShift(-12)}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                        className="text-[10px] px-2 py-1 rounded-lg bg-light dark:bg-dark border border-tertiary/30 text-dark/70 dark:text-light/70 font-mono font-bold hover:border-primary transition-all"
                       >
                         -1 Oct
                       </button>
                       <button
                         onClick={() => setPitchShift(12)}
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                        className="text-[10px] px-2 py-1 rounded-lg bg-light dark:bg-dark border border-tertiary/30 text-dark/70 dark:text-light/70 font-mono font-bold hover:border-primary transition-all"
                       >
                         +1 Oct
                       </button>
@@ -1511,28 +1514,28 @@ export default function AudioEditorPage() {
               </div>
 
               {/* 4. Echo / Feedback Delay */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <RadioIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <RadioIcon className="h-4 w-4 text-primary" />
                     Feedback Delay / Echo
                   </span>
                   <input
                     type="checkbox"
                     checked={enableDelay}
                     onChange={(e) => setEnableDelay(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Rhythmic stereo repeats and slapback delay.
                 </p>
                 {enableDelay && (
-                  <div className="space-y-2 pt-1">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-3 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Delay Time</span>
-                        <span className="font-mono text-indigo-400">
+                        <span className="font-mono text-primary font-bold">
                           {delayTime}s
                         </span>
                       </div>
@@ -1545,13 +1548,13 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setDelayTime(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Feedback</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {Math.round(delayFeedback * 100)}%
                         </span>
                       </div>
@@ -1564,7 +1567,7 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setDelayFeedback(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
                   </div>
@@ -1572,28 +1575,28 @@ export default function AudioEditorPage() {
               </div>
 
               {/* 5. Studio Hall Reverb */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <SparklesIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <SparklesIcon className="h-4 w-4 text-primary" />
                     Studio Hall Reverb
                   </span>
                   <input
                     type="checkbox"
                     checked={enableReverb}
                     onChange={(e) => setEnableReverb(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Acoustic room space & lush atmospheric decay.
                 </p>
                 {enableReverb && (
-                  <div className="space-y-2 pt-1">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-3 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Decay Time</span>
-                        <span className="font-mono text-indigo-400">
+                        <span className="font-mono text-primary font-bold">
                           {reverbDecay}s
                         </span>
                       </div>
@@ -1606,13 +1609,13 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setReverbDecay(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs text-gray-500">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                         <span>Reverb Mix (Wet)</span>
-                        <span className="font-mono">
+                        <span className="font-mono text-dark dark:text-light font-bold">
                           {Math.round(reverbWet * 100)}%
                         </span>
                       </div>
@@ -1625,7 +1628,7 @@ export default function AudioEditorPage() {
                         onChange={(e) =>
                           setReverbWet(parseFloat(e.target.value))
                         }
-                        className="w-full accent-indigo-600 cursor-pointer"
+                        className="w-full accent-primary cursor-pointer"
                       />
                     </div>
                   </div>
@@ -1633,27 +1636,27 @@ export default function AudioEditorPage() {
               </div>
 
               {/* 6. Warm Saturation & Distortion */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <BoltIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <BoltIcon className="h-4 w-4 text-primary" />
                     Warm Drive / Distortion
                   </span>
                   <input
                     type="checkbox"
                     checked={enableDistortion}
                     onChange={(e) => setEnableDistortion(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Analog tube warmth, harmonic grit and fuzz.
                 </p>
                 {enableDistortion && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Drive Amount</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {Math.round(distortionAmount * 100)}%
                       </span>
                     </div>
@@ -1666,34 +1669,34 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setDistortionAmount(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 7. Dimensional Chorus */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <MusicalNoteIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <MusicalNoteIcon className="h-4 w-4 text-primary" />
                     Dimensional Chorus
                   </span>
                   <input
                     type="checkbox"
                     checked={enableChorus}
                     onChange={(e) => setEnableChorus(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Lush ensemble thickening and modulation shimmer.
                 </p>
                 {enableChorus && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Depth</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {Math.round(chorusDepth * 100)}%
                       </span>
                     </div>
@@ -1706,34 +1709,34 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setChorusDepth(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 8. Stereo Phaser */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <RadioIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <RadioIcon className="h-4 w-4 text-primary" />
                     Stereo Phaser
                   </span>
                   <input
                     type="checkbox"
                     checked={enablePhaser}
                     onChange={(e) => setEnablePhaser(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Swirling psychedelic 70s phase cancellation sweeps.
                 </p>
                 {enablePhaser && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Frequency</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {phaserFreq} Hz
                       </span>
                     </div>
@@ -1746,34 +1749,34 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setPhaserFreq(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 9. Tremolo Pulse */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <BoltIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <BoltIcon className="h-4 w-4 text-primary" />
                     Tremolo Strobe
                   </span>
                   <input
                     type="checkbox"
                     checked={enableTremolo}
                     onChange={(e) => setEnableTremolo(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Rhythmic volume fluctuation and stutter effect.
                 </p>
                 {enableTremolo && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Speed</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {tremoloFreq} Hz
                       </span>
                     </div>
@@ -1786,34 +1789,34 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setTremoloFreq(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 10. Lo-Fi BitCrusher */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <RadioIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <RadioIcon className="h-4 w-4 text-primary" />
                     Lo-Fi BitCrusher
                   </span>
                   <input
                     type="checkbox"
                     checked={enableBitCrusher}
                     onChange={(e) => setEnableBitCrusher(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Downsamples bit depth for vintage video game crunch.
                 </p>
                 {enableBitCrusher && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Resolution</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {bitCrusherBits} bits
                       </span>
                     </div>
@@ -1826,34 +1829,34 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setBitCrusherBits(parseInt(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}
               </div>
 
               {/* 11. Stereo Widener */}
-              <div className="space-y-3 p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+              <div className="space-y-4 p-5 rounded-2xl bg-light/50 dark:bg-dark/50 backdrop-blur-xl border border-tertiary/20 shadow-sm hover:border-primary/40 transition-all">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm flex items-center gap-2">
-                    <SpeakerWaveIcon className="h-4 w-4 text-indigo-400" />
+                  <span className="font-bold text-xs flex items-center gap-2 font-heading">
+                    <SpeakerWaveIcon className="h-4 w-4 text-primary" />
                     Stereo Widener
                   </span>
                   <input
                     type="checkbox"
                     checked={enableWidener}
                     onChange={(e) => setEnableWidener(e.target.checked)}
-                    className="accent-indigo-600 h-4 w-4 cursor-pointer"
+                    className="accent-primary h-4 w-4 cursor-pointer rounded"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-dark/60 dark:text-light/60 font-sans leading-relaxed">
                   Expands the stereo panorama field for an immersive mix.
                 </p>
                 {enableWidener && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex justify-between text-xs text-gray-500">
+                  <div className="space-y-1.5 pt-2 border-t border-tertiary/10 font-sans">
+                    <div className="flex justify-between text-xs text-dark/50 dark:text-light/50">
                       <span>Width</span>
-                      <span className="font-mono text-indigo-400">
+                      <span className="font-mono text-primary font-bold">
                         {Math.round(widenerWidth * 100)}%
                       </span>
                     </div>
@@ -1866,7 +1869,7 @@ export default function AudioEditorPage() {
                       onChange={(e) =>
                         setWidenerWidth(parseFloat(e.target.value))
                       }
-                      className="w-full accent-indigo-600 cursor-pointer"
+                      className="w-full accent-primary cursor-pointer"
                     />
                   </div>
                 )}

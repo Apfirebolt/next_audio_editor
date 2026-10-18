@@ -106,7 +106,7 @@ const Footer = () => {
 
         {/* Divider & Copyright */}
         <div className="border-t border-tertiary/20 dark:border-tertiary/10 pt-8 mt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-dark/50 dark:text-light/50 font-sans gap-4">
-          <p>&copy; {new Date().getFullYear()} BeatsLounge Studio. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Softgenie Beats. All rights reserved.</p>
           
           <div className="flex space-x-6">
             <span className="hover:text-primary cursor-pointer transition-colors">

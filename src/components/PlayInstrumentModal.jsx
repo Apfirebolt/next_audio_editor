@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { XMarkIcon, PlayIcon, PauseIcon, ArrowDownTrayIcon, MusicalNoteIcon } from "@heroicons/react/24/outline";
+import { 
+  XMarkIcon, 
+  PlayIcon, 
+  PauseIcon, 
+  ArrowDownTrayIcon, 
+  MusicalNoteIcon, 
+  SpeakerWaveIcon, 
+  SpeakerXMarkIcon, 
+  ArrowPathIcon 
+} from "@heroicons/react/24/outline";
 import * as Tone from "tone";
 
 export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedClips, selectedSynth }) {
@@ -9,6 +18,12 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
   const [cursorPosition, setCursorPosition] = useState(0); // in seconds
   const [isDraggingCursor, setIsDraggingCursor] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // New Studio Features
+  const [masterVolume, setMasterVolume] = useState(0); // in dB (-30 to +6)
+  const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [isLooping, setIsLooping] = useState(false);
 
   const timelineRef = useRef(null);
   const playbackTimerRef = useRef(null);
@@ -22,6 +37,13 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     }
   }, [isOpen]);
 
+  // Apply Volume and Mute to Synth if available
+  useEffect(() => {
+    if (selectedSynth) {
+      selectedSynth.volume.value = isMuted ? -Infinity : masterVolume;
+    }
+  }, [masterVolume, isMuted, selectedSynth]);
+
   // Handle Playback & Real-Time Note Triggering
   const startPlayback = async () => {
     await Tone.start();
@@ -31,20 +53,21 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     const now = Tone.now();
     const startOffset = cursorPosition;
 
-    // Trigger clips starting from current cursor position
+    // Apply playback speed modifier to timing
+    const effectiveSpeed = playbackSpeed;
+
     recordedClips.forEach((clip) => {
       const track = tracks.find((t) => t.id === clip.trackId);
       if (track && !track.muted) {
         if (clip.offset >= startOffset) {
-          const delay = clip.offset - startOffset;
+          const delay = (clip.offset - startOffset) / effectiveSpeed;
           selectedSynth.triggerAttackRelease(
             clip.note,
-            clip.duration,
+            clip.duration / effectiveSpeed,
             now + delay
           );
         } else if (clip.offset + clip.duration > startOffset) {
-          // Clip has already started, play remaining duration
-          const remainingDuration = clip.duration - (startOffset - clip.offset);
+          const remainingDuration = (clip.duration - (startOffset - clip.offset)) / effectiveSpeed;
           selectedSynth.triggerAttackRelease(
             clip.note,
             remainingDuration,
@@ -55,12 +78,18 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     });
 
     // Animate playback cursor
-    const startTimeRef = Date.now() - cursorPosition * 1000;
+    const startTimeRef = Date.now() - (cursorPosition * 1000) / effectiveSpeed;
     playbackTimerRef.current = setInterval(() => {
-      const elapsed = (Date.now() - startTimeRef) / 1000;
+      const elapsed = ((Date.now() - startTimeRef) / 1000) * effectiveSpeed;
       if (elapsed >= maxDuration) {
-        stopPlayback();
-        setCursorPosition(0);
+        if (isLooping) {
+          setCursorPosition(0);
+          stopPlayback();
+          startPlayback();
+        } else {
+          stopPlayback();
+          setCursorPosition(0);
+        }
       } else {
         setCursorPosition(elapsed);
       }
@@ -94,7 +123,7 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     const newTime = percentage * maxDuration;
     setCursorPosition(Math.min(newTime, maxDuration));
     if (isPlaying) {
-      stopPlayback(); // Stop current playback if scrubbing live
+      stopPlayback();
     }
   };
 
@@ -126,15 +155,15 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     try {
       const buffer = await Tone.Offline(async () => {
         const offlineSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        offlineSynth.volume.value = masterVolume;
         recordedClips.forEach((clip) => {
           const track = tracks.find((t) => t.id === clip.trackId);
           if (track && !track.muted) {
-            offlineSynth.triggerAttackRelease(clip.note, clip.duration, clip.offset);
+            offlineSynth.triggerAttackRelease(clip.note, clip.duration / playbackSpeed, clip.offset / playbackSpeed);
           }
         });
-      }, maxDuration + 1);
+      }, (maxDuration / playbackSpeed) + 1);
 
-      // Convert AudioBuffer to WAV Blob
       const wavBlob = audioBufferToWav(buffer);
       const url = URL.createObjectURL(wavBlob);
 
@@ -149,7 +178,6 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
     }
   };
 
-  // Helper to convert AudioBuffer to standard WAV Blob format
   const audioBufferToWav = (buffer) => {
     const numOfChan = buffer.numberOfChannels;
     const length = buffer.length * numOfChan * 2 + 44;
@@ -229,8 +257,9 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
           </button>
         </div>
 
-        {/* Playback Controls & Export Toolbar */}
+        {/* Playback Controls & Studio Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-4 bg-light/50 dark:bg-dark/50 p-4 rounded-2xl border border-tertiary/20">
+          
           <div className="flex items-center gap-4">
             <button
               onClick={togglePlay}
@@ -244,10 +273,57 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* New Studio Options: Volume, Speed, Loop, Rewind, Export */}
+          <div className="flex flex-wrap items-center gap-3">
+            
+            {/* Master Volume Slider & Mute */}
+            <div className="flex items-center gap-2 bg-white dark:bg-dark px-3 py-1.5 rounded-xl border border-tertiary/20">
+              <button onClick={() => setIsMuted(!isMuted)} className="text-primary hover:opacity-80">
+                {isMuted || masterVolume <= -30 ? <SpeakerXMarkIcon className="h-4 w-4 text-danger" /> : <SpeakerWaveIcon className="h-4 w-4" />}
+              </button>
+              <input
+                type="range"
+                min="-30"
+                max="6"
+                step="1"
+                value={isMuted ? -30 : masterVolume}
+                onChange={(e) => {
+                  setMasterVolume(parseFloat(e.target.value));
+                  if (isMuted) setIsMuted(false);
+                }}
+                className="w-16 accent-primary cursor-pointer"
+                title="Master Volume"
+              />
+              <span className="text-[10px] font-mono text-dark/60 dark:text-light/60 min-w-8 text-right">
+                {masterVolume > 0 ? `+${masterVolume}` : masterVolume}dB
+              </span>
+            </div>
+
+            {/* Playback Speed Selector */}
+            <select
+              value={playbackSpeed}
+              onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+              className="bg-white dark:bg-dark border border-tertiary/30 rounded-xl px-2.5 py-1.5 text-xs font-mono text-dark dark:text-light focus:outline-none"
+            >
+              <option value="0.5">0.5x Speed</option>
+              <option value="1">1.0x Normal</option>
+              <option value="1.25">1.25x Speed</option>
+              <option value="1.5">1.5x Speed</option>
+            </select>
+
+            {/* Loop Toggle */}
+            <button
+              onClick={() => setIsLooping(!isLooping)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                isLooping ? "bg-primary/20 border-primary text-primary" : "bg-white dark:bg-dark border-tertiary/30 text-dark/60 dark:text-light/60"
+              }`}
+            >
+              Loop: {isLooping ? "ON" : "OFF"}
+            </button>
+
             <button
               onClick={() => setCursorPosition(0)}
-              className="text-xs font-bold text-dark/60 dark:text-light/60 hover:text-primary transition-colors font-sans"
+              className="text-xs font-bold text-dark/60 dark:text-light/60 hover:text-primary transition-colors font-sans px-2"
             >
               Rewind
             </button>
@@ -258,7 +334,7 @@ export default function PlayInstrumentModal({ isOpen, onClose, tracks, recordedC
               className="px-4 py-2.5 rounded-xl font-bold bg-success text-white hover:opacity-90 transition-all flex items-center gap-2 text-xs shadow-md disabled:opacity-50"
             >
               <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>{isExporting ? "Rendering WAV..." : "Export Master Mix (WAV)"}</span>
+              <span>{isExporting ? "Rendering WAV..." : "Export (WAV)"}</span>
             </button>
           </div>
         </div>

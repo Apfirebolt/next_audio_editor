@@ -92,7 +92,16 @@ export default function InstrumentPage() {
     reverbRef.current = new Tone.Reverb({ decay: 2.5, wet: 0.4 });
     limiterRef.current = new Tone.Limiter(-1);
 
-    if (selectedInstrument.type === "fm") {
+    // Handle synth initialization safely without throwing Monophonic errors
+    if (
+      selectedInstrument.type === "pluck" ||
+      selectedInstrument.type === "synth"
+    ) {
+      synthRef.current = new Tone.PolySynth(
+        Tone.Synth,
+        selectedInstrument.options,
+      );
+    } else if (selectedInstrument.type === "fm") {
       synthRef.current = new Tone.PolySynth(
         Tone.FMSynth,
         selectedInstrument.options,
@@ -385,15 +394,18 @@ export default function InstrumentPage() {
       <Header />
 
       <main className="flex-grow max-w-7xl mx-auto w-full px-6 py-12 space-y-10">
-        
         {/* Top Header & Navigation Tabs */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4" data-aos="fade-down">
+        <div
+          className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+          data-aos="fade-down"
+        >
           <div className="space-y-1">
             <h1 className="text-3xl font-extrabold tracking-tight font-heading">
               Virtual Beats & Multi-Track Studio
             </h1>
             <p className="text-dark/60 dark:text-light/65 text-sm font-sans">
-              Arrange MIDI notes across up to 5 tracks, resize blocks by dragging, and sculpt sound.
+              Arrange MIDI notes across up to 5 tracks, resize blocks by
+              dragging, and sculpt sound.
             </p>
           </div>
 
@@ -424,35 +436,78 @@ export default function InstrumentPage() {
 
         {activeTab === "synth" && (
           <div className="space-y-10">
-            
             {/* INSTRUMENT PRESET GRID */}
             <div className="space-y-4" data-aos="fade-up">
-              <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-dark/50 dark:text-light/50">
-                Select Instrument Preset ({INSTRUMENTS.length} Available)
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[340px] overflow-y-auto pr-2">
-                {INSTRUMENTS.map((inst) => (
-                  <button
-                    key={inst.id}
-                    onClick={() => handleInstrumentChange(inst)}
-                    className={`p-4 rounded-2xl border text-left transition-all space-y-1.5 group ${
-                      selectedInstrument.id === inst.id
-                        ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10 scale-[1.02]"
-                        : "border-tertiary/20 bg-white/60 dark:bg-dark/60 hover:border-primary/50 text-dark dark:text-light"
-                    }`}
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <MusicalNoteIcon className="h-4 w-4 text-primary" />
-                    </div>
-                    <p className="font-bold text-xs truncate font-heading">{inst.name}</p>
-                    <p className="text-[10px] text-dark/50 dark:text-light/50 uppercase tracking-wide">{inst.type} synth</p>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between">
+                <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-dark/50 dark:text-light/50">
+                  Select Instrument Preset ({INSTRUMENTS.length} Available)
+                </h3>
+                <span className="text-[11px] font-mono text-primary font-bold">
+                  Active: {selectedInstrument.name}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-h-[360px] overflow-y-auto pr-2">
+                {INSTRUMENTS.map((inst) => {
+                  const isSelected = selectedInstrument.id === inst.id;
+
+                  return (
+                    <button
+                      key={inst.id}
+                      onClick={() => handleInstrumentChange(inst)}
+                      className={`relative p-5 rounded-3xl border text-left transition-all duration-300 space-y-3 group overflow-hidden ${
+                        isSelected
+                          ? "border-primary bg-primary/15 dark:bg-primary/20 shadow-xl shadow-primary/20 scale-[1.03]"
+                          : "border-tertiary/20 bg-white/50 dark:bg-dark/50 hover:border-primary/40 hover:bg-white/80 dark:hover:bg-dark/80 text-dark dark:text-light shadow-sm"
+                      }`}
+                    >
+                      {/* Subtle background ambient light glow for selected state */}
+                      {isSelected && (
+                        <div className="absolute -top-10 -right-10 w-24 h-24 bg-primary/30 blur-2xl rounded-full pointer-events-none" />
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 ${
+                            isSelected
+                              ? "bg-primary text-white shadow-md shadow-primary/30"
+                              : "bg-primary/10 text-primary border border-primary/20"
+                          }`}
+                        >
+                          <MusicalNoteIcon className="h-5 w-5" />
+                        </div>
+
+                        <span
+                          className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                            isSelected
+                              ? "bg-primary text-white"
+                              : "bg-tertiary/20 text-dark/60 dark:text-light/60"
+                          }`}
+                        >
+                          {inst.type}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="font-bold text-xs truncate font-heading tracking-tight">
+                          {inst.name}
+                        </p>
+                        <p className="text-[10px] text-dark/50 dark:text-light/50 font-sans">
+                          Cutoff: {inst.filterCutoff}Hz
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* MULTI-TRACK GARAGEBAND TIMELINE */}
-            <div className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="100">
+            <div
+              className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl"
+              data-aos="fade-up"
+              data-aos-delay="100"
+            >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-tertiary/20 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -463,14 +518,17 @@ export default function InstrumentPage() {
                       Multi-Track Arrangement Timeline ({tracks.length}/5)
                     </h3>
                     <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
-                      Record notes into selected track, drag blocks to move, or resize right edge.
+                      Record notes into selected track, drag blocks to move, or
+                      resize right edge.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2 text-xs font-sans">
-                    <span className="text-dark/50 dark:text-light/50">Record to:</span>
+                    <span className="text-dark/50 dark:text-light/50">
+                      Record to:
+                    </span>
                     <select
                       value={selectedTargetTrackId}
                       onChange={(e) =>
@@ -511,7 +569,9 @@ export default function InstrumentPage() {
                       className="px-4 py-2 rounded-xl font-bold bg-success text-white hover:opacity-90 transition-all flex items-center gap-2 text-xs shadow-md"
                     >
                       <PlayIcon className="h-4 w-4" />
-                      <span>{isPlayingArrangement ? "Playing..." : "Play Mix"}</span>
+                      <span>
+                        {isPlayingArrangement ? "Playing..." : "Play Mix"}
+                      </span>
                     </button>
                   )}
 
@@ -595,7 +655,8 @@ export default function InstrumentPage() {
                       <div className="relative h-20 rounded-xl bg-white dark:bg-dark border border-tertiary/20 overflow-x-auto overflow-y-hidden p-2 flex items-center shadow-inner">
                         {trackClips.length === 0 ? (
                           <div className="w-full text-center text-[11px] text-dark/40 dark:text-light/40 font-sans">
-                            Empty Track. Select this track in top toolbar and play notes to record blocks.
+                            Empty Track. Select this track in top toolbar and
+                            play notes to record blocks.
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 min-w-full relative h-full pt-1">
@@ -625,7 +686,9 @@ export default function InstrumentPage() {
                                 </div>
 
                                 <div className="flex items-center justify-between text-[9px] text-light/80">
-                                  <span className="truncate font-sans">{clip.instrumentName}</span>
+                                  <span className="truncate font-sans">
+                                    {clip.instrumentName}
+                                  </span>
                                   <select
                                     value={clip.trackId}
                                     onChange={(e) =>
@@ -661,14 +724,23 @@ export default function InstrumentPage() {
             </div>
 
             {/* EFFECTS RACK */}
-            <div className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="200">
+            <div
+              className="p-6 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl"
+              data-aos="fade-up"
+              data-aos-delay="200"
+            >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
                   <AdjustmentsHorizontalIcon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg font-heading">Pro Effects Rack</h3>
-                  <p className="text-xs text-dark/60 dark:text-light/60 font-sans">Sculpt live frequencies, overdrive, delay, and reverb chains.</p>
+                  <h3 className="font-bold text-lg font-heading">
+                    Pro Effects Rack
+                  </h3>
+                  <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
+                    Sculpt live frequencies, overdrive, delay, and reverb
+                    chains.
+                  </p>
                 </div>
               </div>
 
@@ -676,7 +748,9 @@ export default function InstrumentPage() {
                 <div className="space-y-3 p-4 rounded-2xl bg-light/50 dark:bg-dark/50 border border-tertiary/20">
                   <div className="flex justify-between items-center text-xs font-bold font-heading">
                     <span>Filter Cutoff</span>
-                    <span className="font-mono text-primary">{filterCutoff} Hz</span>
+                    <span className="font-mono text-primary">
+                      {filterCutoff} Hz
+                    </span>
                   </div>
                   <input
                     type="range"
@@ -738,10 +812,16 @@ export default function InstrumentPage() {
             </div>
 
             {/* INTERACTIVE KEYPAD */}
-            <div className="p-8 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl" data-aos="fade-up" data-aos-delay="300">
+            <div
+              className="p-8 rounded-3xl bg-white/70 dark:bg-dark/70 backdrop-blur-xl border border-tertiary/20 dark:border-tertiary/10 space-y-6 shadow-xl"
+              data-aos="fade-up"
+              data-aos-delay="300"
+            >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-tertiary/20 pb-4">
                 <div>
-                  <h3 className="font-bold text-lg font-heading">Interactive Studio Keypad</h3>
+                  <h3 className="font-bold text-lg font-heading">
+                    Interactive Studio Keypad
+                  </h3>
                   <p className="text-xs text-dark/60 dark:text-light/60 font-sans">
                     {keyboardMode === "21"
                       ? "Standard 21-Key Layout"
@@ -801,7 +881,9 @@ export default function InstrumentPage() {
                     <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-tertiary/20 text-dark/70 dark:text-light/70">
                       {k.key}
                     </span>
-                    <span className="font-bold text-[10px] sm:text-[11px] font-mono">{k.label}</span>
+                    <span className="font-bold text-[10px] sm:text-[11px] font-mono">
+                      {k.label}
+                    </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-primary opacity-60"></span>
                   </button>
                 ))}

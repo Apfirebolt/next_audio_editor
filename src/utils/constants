@@ -1,224 +1,374 @@
 const INSTRUMENTS = [
   // --- EXPANDED GUITARS & PLUCKED STRINGS ---
-  { 
-    id: "nylon-guitar", 
-    name: "Classical Nylon Guitar", 
-    type: "fm", 
-    options: { harmonicity: 1.2, modulationIndex: 6, oscillator: { type: "triangle" }, envelope: { attack: 0.008, decay: 0.6, sustain: 0.05, release: 0.9 } },
-    filterCutoff: 2600 
+  {
+    id: "classical-nylon-synth",
+    name: "Acoustic Nylon Guitar",
+    type: "pluck",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.002, decay: 0.4, sustain: 0.0, release: 0.4 },
+    },
+    filterCutoff: 3200,
   },
-  { 
-    id: "jazz-guitar", 
-    name: "Warm Jazz Guitar", 
-    type: "fm", 
-    options: { harmonicity: 1.0, modulationIndex: 4, oscillator: { type: "sine" }, envelope: { attack: 0.02, decay: 0.5, sustain: 0.2, release: 0.7 } },
-    filterCutoff: 2200 
+  {
+    id: "steel-string-synth",
+    name: "Bright Steel Acoustic",
+    type: "fm",
+    options: {
+      harmonicity: 3.0,
+      modulationIndex: 10,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.003, decay: 0.8, sustain: 0.01, release: 0.8 },
+      modulationEnvelope: {
+        attack: 0.002,
+        decay: 0.2,
+        sustain: 0,
+        release: 0.2,
+      },
+    },
+    filterCutoff: 4500,
   },
-  { 
-    id: "overdrive-guitar", 
-    name: "Overdriven Rock Guitar", 
-    type: "fm", 
-    options: { harmonicity: 2.5, modulationIndex: 16, oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.4, sustain: 0.5, release: 0.5 } },
-    filterCutoff: 5500 
+  {
+    id: "nylon-guitar",
+    name: "Classical Nylon Guitar",
+    type: "fm",
+    options: {
+      harmonicity: 1.2,
+      modulationIndex: 6,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.008, decay: 0.6, sustain: 0.05, release: 0.9 },
+    },
+    filterCutoff: 2600,
   },
-  { 
-    id: "heavy-distortion-guitar", 
-    name: "Heavy Metal Distortion", 
-    type: "fm", 
-    options: { harmonicity: 3.0, modulationIndex: 25, oscillator: { type: "sawtooth" }, envelope: { attack: 0.005, decay: 0.3, sustain: 0.7, release: 0.4 } },
-    filterCutoff: 7000 
+  {
+    id: "jazz-guitar",
+    name: "Warm Jazz Guitar",
+    type: "fm",
+    options: {
+      harmonicity: 1.0,
+      modulationIndex: 4,
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.02, decay: 0.5, sustain: 0.2, release: 0.7 },
+    },
+    filterCutoff: 2200,
   },
-  { 
-    id: "palm-muted-guitar", 
-    name: "Palm-Muted Electric", 
-    type: "fm", 
-    options: { harmonicity: 2.2, modulationIndex: 12, oscillator: { type: "triangle" }, envelope: { attack: 0.002, decay: 0.12, sustain: 0.02, release: 0.15 } },
-    filterCutoff: 3000 
+  {
+    id: "overdrive-guitar",
+    name: "Overdriven Rock Guitar",
+    type: "fm",
+    options: {
+      harmonicity: 2.5,
+      modulationIndex: 16,
+      oscillator: { type: "sawtooth" },
+      envelope: { attack: 0.01, decay: 0.4, sustain: 0.5, release: 0.5 },
+    },
+    filterCutoff: 5500,
   },
-  { 
-    id: "12-string-guitar", 
-    name: "12-String Acoustic", 
-    type: "fm", 
-    options: { harmonicity: 1.8, modulationIndex: 14, oscillator: { type: "triangle" }, envelope: { attack: 0.004, decay: 0.7, sustain: 0.1, release: 1.0 } },
-    filterCutoff: 4500 
+  {
+    id: "heavy-distortion-guitar",
+    name: "Heavy Metal Distortion",
+    type: "fm",
+    options: {
+      harmonicity: 3.0,
+      modulationIndex: 25,
+      oscillator: { type: "sawtooth" },
+      envelope: { attack: 0.005, decay: 0.3, sustain: 0.7, release: 0.4 },
+    },
+    filterCutoff: 7000,
   },
-  { 
-    id: "slide-guitar", 
-    name: "Blues Slide Guitar", 
-    type: "fm", 
-    options: { harmonicity: 1.6, modulationIndex: 12, oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 0.8 } },
-    filterCutoff: 3800 
+  {
+    id: "palm-muted-guitar",
+    name: "Palm-Muted Electric",
+    type: "fm",
+    options: {
+      harmonicity: 2.2,
+      modulationIndex: 12,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.002, decay: 0.12, sustain: 0.02, release: 0.15 },
+    },
+    filterCutoff: 3000,
   },
-  { 
-    id: "power-chord-guitar", 
-    name: "Stadium Power Chords", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth8" }, envelope: { attack: 0.01, decay: 0.4, sustain: 0.6, release: 0.6 } },
-    filterCutoff: 5000 
+  {
+    id: "12-string-guitar",
+    name: "12-String Acoustic",
+    type: "fm",
+    options: {
+      harmonicity: 1.8,
+      modulationIndex: 14,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.004, decay: 0.7, sustain: 0.1, release: 1.0 },
+    },
+    filterCutoff: 4500,
   },
-  { 
-    id: "banjo", 
-    name: "Country Banjo", 
-    type: "fm", 
-    options: { harmonicity: 3.2, modulationIndex: 10, oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.2 } },
-    filterCutoff: 5200 
+  {
+    id: "slide-guitar",
+    name: "Blues Slide Guitar",
+    type: "fm",
+    options: {
+      harmonicity: 1.6,
+      modulationIndex: 12,
+      oscillator: { type: "sawtooth" },
+      envelope: { attack: 0.05, decay: 0.5, sustain: 0.4, release: 0.8 },
+    },
+    filterCutoff: 3800,
   },
-  { 
-    id: "ukulele", 
-    name: "Island Ukulele", 
-    type: "fm", 
-    options: { harmonicity: 1.4, modulationIndex: 6, oscillator: { type: "triangle" }, envelope: { attack: 0.003, decay: 0.3, sustain: 0.05, release: 0.4 } },
-    filterCutoff: 3400 
+  {
+    id: "power-chord-guitar",
+    name: "Stadium Power Chords",
+    type: "poly",
+    options: {
+      oscillator: { type: "sawtooth8" },
+      envelope: { attack: 0.01, decay: 0.4, sustain: 0.6, release: 0.6 },
+    },
+    filterCutoff: 5000,
   },
-  { 
-    id: "mandolin", 
-    name: "Folk Mandolin", 
-    type: "fm", 
-    options: { harmonicity: 2.8, modulationIndex: 9, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 0.25, sustain: 0.02, release: 0.3 } },
-    filterCutoff: 4800 
+  {
+    id: "banjo",
+    name: "Country Banjo",
+    type: "fm",
+    options: {
+      harmonicity: 3.2,
+      modulationIndex: 10,
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.2 },
+    },
+    filterCutoff: 5200,
   },
-  { 
-    id: "bass-guitar-clean", 
-    name: "Studio Clean Bass", 
-    type: "poly", 
-    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.4 } },
-    filterCutoff: 900 
+  {
+    id: "ukulele",
+    name: "Island Ukulele",
+    type: "fm",
+    options: {
+      harmonicity: 1.4,
+      modulationIndex: 6,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.003, decay: 0.3, sustain: 0.05, release: 0.4 },
+    },
+    filterCutoff: 3400,
   },
-  { 
-    id: "funk-bass", 
-    name: "Funk Finger Bass", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth4" }, envelope: { attack: 0.005, decay: 0.18, sustain: 0.2, release: 0.25 } },
-    filterCutoff: 1500 
+  {
+    id: "mandolin",
+    name: "Folk Mandolin",
+    type: "fm",
+    options: {
+      harmonicity: 2.8,
+      modulationIndex: 9,
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.002, decay: 0.25, sustain: 0.02, release: 0.3 },
+    },
+    filterCutoff: 4800,
+  },
+  {
+    id: "bass-guitar-clean",
+    name: "Studio Clean Bass",
+    type: "poly",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.02, decay: 0.3, sustain: 0.4, release: 0.4 },
+    },
+    filterCutoff: 900,
+  },
+  {
+    id: "funk-bass",
+    name: "Funk Finger Bass",
+    type: "poly",
+    options: {
+      oscillator: { type: "sawtooth4" },
+      envelope: { attack: 0.005, decay: 0.18, sustain: 0.2, release: 0.25 },
+    },
+    filterCutoff: 1500,
   },
 
   // --- EXPANDED DRUMS & PERCUSSIVE SYNTHS ---
-  { 
-    id: "808-kick", 
-    name: "TR-808 Heavy Kick", 
-    type: "mono", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.2 } },
-    filterCutoff: 300 
+  {
+    id: "808-kick",
+    name: "TR-808 Heavy Kick",
+    type: "mono",
+    options: {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.4, sustain: 0.0, release: 0.2 },
+    },
+    filterCutoff: 300,
   },
-  { 
-    id: "acoustic-kick", 
-    name: "Punchy Acoustic Kick", 
-    type: "mono", 
-    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.18, sustain: 0.0, release: 0.1 } },
-    filterCutoff: 600 
+  {
+    id: "acoustic-kick",
+    name: "Punchy Acoustic Kick",
+    type: "mono",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.001, decay: 0.18, sustain: 0.0, release: 0.1 },
+    },
+    filterCutoff: 600,
   },
-  { 
-    id: "808-snare", 
-    name: "TR-808 Crisp Snare", 
-    type: "am", 
-    options: { harmonicity: 1.5, oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.15, sustain: 0.0, release: 0.1 } },
-    filterCutoff: 3500 
+  {
+    id: "808-snare",
+    name: "TR-808 Crisp Snare",
+    type: "am",
+    options: {
+      harmonicity: 1.5,
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.15, sustain: 0.0, release: 0.1 },
+    },
+    filterCutoff: 3500,
   },
-  { 
-    id: "acoustic-snare", 
-    name: "Stadium Snare Drum", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth2" }, envelope: { attack: 0.002, decay: 0.2, sustain: 0.0, release: 0.15 } },
-    filterCutoff: 4000 
+  {
+    id: "acoustic-snare",
+    name: "Stadium Snare Drum",
+    type: "poly",
+    options: {
+      oscillator: { type: "sawtooth2" },
+      envelope: { attack: 0.002, decay: 0.2, sustain: 0.0, release: 0.15 },
+    },
+    filterCutoff: 4000,
   },
-  { 
-    id: "hi-hat-closed", 
-    name: "Closed Hi-Hat", 
-    type: "mono", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.001, decay: 0.04, sustain: 0.0, release: 0.02 } },
-    filterCutoff: 7500 
+  {
+    id: "hi-hat-closed",
+    name: "Closed Hi-Hat",
+    type: "mono",
+    options: {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.04, sustain: 0.0, release: 0.02 },
+    },
+    filterCutoff: 7500,
   },
-  { 
-    id: "hi-hat-open", 
-    name: "Open Hi-Hat Splash", 
-    type: "mono", 
-    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.001, decay: 0.35, sustain: 0.0, release: 0.2 } },
-    filterCutoff: 6500 
+  {
+    id: "hi-hat-open",
+    name: "Open Hi-Hat Splash",
+    type: "mono",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.001, decay: 0.35, sustain: 0.0, release: 0.2 },
+    },
+    filterCutoff: 6500,
   },
-  { 
-    id: "clap", 
-    name: "Electric Hand Clap", 
-    type: "poly", 
-    options: { oscillator: { type: "square" }, envelope: { attack: 0.002, decay: 0.1, sustain: 0.0, release: 0.08 } },
-    filterCutoff: 4200 
+  {
+    id: "clap",
+    name: "Electric Hand Clap",
+    type: "poly",
+    options: {
+      oscillator: { type: "square" },
+      envelope: { attack: 0.002, decay: 0.1, sustain: 0.0, release: 0.08 },
+    },
+    filterCutoff: 4200,
   },
-  { 
-    id: "tom-low", 
-    name: "Floor Tom Drum", 
-    type: "mono", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.005, decay: 0.45, sustain: 0.0, release: 0.3 } },
-    filterCutoff: 450 
+  {
+    id: "tom-low",
+    name: "Floor Tom Drum",
+    type: "mono",
+    options: {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.005, decay: 0.45, sustain: 0.0, release: 0.3 },
+    },
+    filterCutoff: 450,
   },
-  { 
-    id: "tom-high", 
-    name: "Rack Tom Drum", 
-    type: "mono", 
-    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.003, decay: 0.3, sustain: 0.0, release: 0.2 } },
-    filterCutoff: 800 
+  {
+    id: "tom-high",
+    name: "Rack Tom Drum",
+    type: "mono",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.003, decay: 0.3, sustain: 0.0, release: 0.2 },
+    },
+    filterCutoff: 800,
   },
-  { 
-    id: "crash-cymbal", 
-    name: "Crash Cymbal", 
-    type: "am", 
-    options: { harmonicity: 2.2, oscillator: { type: "sawtooth" }, envelope: { attack: 0.002, decay: 1.2, sustain: 0.0, release: 0.8 } },
-    filterCutoff: 8000 
+  {
+    id: "crash-cymbal",
+    name: "Crash Cymbal",
+    type: "am",
+    options: {
+      harmonicity: 2.2,
+      oscillator: { type: "sawtooth" },
+      envelope: { attack: 0.002, decay: 1.2, sustain: 0.0, release: 0.8 },
+    },
+    filterCutoff: 8000,
   },
-  { 
-    id: "ride-cymbal", 
-    name: "Jazz Ride Cymbal", 
-    type: "fm", 
-    options: { harmonicity: 4.1, modulationIndex: 8, oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 0.8, sustain: 0.0, release: 0.5 } },
-    filterCutoff: 7000 
+  {
+    id: "ride-cymbal",
+    name: "Jazz Ride Cymbal",
+    type: "fm",
+    options: {
+      harmonicity: 4.1,
+      modulationIndex: 8,
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.002, decay: 0.8, sustain: 0.0, release: 0.5 },
+    },
+    filterCutoff: 7000,
   },
-  { 
-    id: "cowbell", 
-    name: "Latin Cowbell", 
-    type: "fm", 
-    options: { harmonicity: 5.4, modulationIndex: 3, oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.1 } },
-    filterCutoff: 3200 
+  {
+    id: "cowbell",
+    name: "Latin Cowbell",
+    type: "fm",
+    options: {
+      harmonicity: 5.4,
+      modulationIndex: 3,
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.2, sustain: 0.0, release: 0.1 },
+    },
+    filterCutoff: 3200,
   },
-  { 
-    id: "congo-drum", 
-    name: "Tribal Congo Drum", 
-    type: "mono", 
-    options: { oscillator: { type: "triangle" }, envelope: { attack: 0.004, decay: 0.25, sustain: 0.0, release: 0.15 } },
-    filterCutoff: 1100 
+  {
+    id: "congo-drum",
+    name: "Tribal Congo Drum",
+    type: "mono",
+    options: {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.004, decay: 0.25, sustain: 0.0, release: 0.15 },
+    },
+    filterCutoff: 1100,
   },
-  { 
-    id: "bongo", 
-    name: "High Bongo Drum", 
-    type: "mono", 
-    options: { oscillator: { type: "sine" }, envelope: { attack: 0.002, decay: 0.15, sustain: 0.0, release: 0.1 } },
-    filterCutoff: 1400 
+  {
+    id: "bongo",
+    name: "High Bongo Drum",
+    type: "mono",
+    options: {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.002, decay: 0.15, sustain: 0.0, release: 0.1 },
+    },
+    filterCutoff: 1400,
   },
-  { 
-    id: "tabla", 
-    name: "Indian Tabla Drum", 
-    type: "fm", 
-    options: { harmonicity: 2.1, modulationIndex: 6, oscillator: { type: "triangle" }, envelope: { attack: 0.003, decay: 0.35, sustain: 0.0, release: 0.2 } },
-    filterCutoff: 2100 
+  {
+    id: "tabla",
+    name: "Indian Tabla Drum",
+    type: "fm",
+    options: {
+      harmonicity: 2.1,
+      modulationIndex: 6,
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.003, decay: 0.35, sustain: 0.0, release: 0.2 },
+    },
+    filterCutoff: 2100,
   },
-  { 
-    id: "tambourine", 
-    name: "Bright Tambourine", 
-    type: "am", 
-    options: { harmonicity: 3.0, oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.12, sustain: 0.0, release: 0.08 } },
-    filterCutoff: 6800 
+  {
+    id: "tambourine",
+    name: "Bright Tambourine",
+    type: "am",
+    options: {
+      harmonicity: 3.0,
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.12, sustain: 0.0, release: 0.08 },
+    },
+    filterCutoff: 6800,
   },
-  { 
-    id: "shaker", 
-    name: "Studio Egg Shaker", 
-    type: "poly", 
-    options: { oscillator: { type: "sawtooth" }, envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.05 } },
-    filterCutoff: 6000 
+  {
+    id: "shaker",
+    name: "Studio Egg Shaker",
+    type: "poly",
+    options: {
+      oscillator: { type: "sawtooth" },
+      envelope: { attack: 0.001, decay: 0.08, sustain: 0.0, release: 0.05 },
+    },
+    filterCutoff: 6000,
   },
-  { 
-    id: "electronic-clap", 
-    name: "Glitch Electronic Clap", 
-    type: "poly", 
-    options: { oscillator: { type: "square" }, envelope: { attack: 0.001, decay: 0.09, sustain: 0.0, release: 0.04 } },
-    filterCutoff: 5000 
-  }
+  {
+    id: "electronic-clap",
+    name: "Glitch Electronic Clap",
+    type: "poly",
+    options: {
+      oscillator: { type: "square" },
+      envelope: { attack: 0.001, decay: 0.09, sustain: 0.0, release: 0.04 },
+    },
+    filterCutoff: 5000,
+  },
 ];
 
 // 1. Standard 21-Key Musical Layout (Octaves 3 & 4)

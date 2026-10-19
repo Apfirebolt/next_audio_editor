@@ -1,9 +1,44 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { RadioIcon, ArrowRightIcon, ShieldCheckIcon, CpuChipIcon } from "@heroicons/react/24/outline";
 
 const Footer = () => {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [message, setMessage] = useState('');
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStatus('success');
+        setMessage(data.message || 'Successfully subscribed!');
+        setEmail('');
+      } else {
+        setStatus('error');
+        setMessage(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch (error) {
+      setStatus('error');
+      setMessage('Network error. Please check your connection.');
+    }
+  };
+
   return (
     <footer className="bg-light dark:bg-dark border-t border-tertiary/20 dark:border-tertiary/10 text-dark/70 dark:text-light/70 transition-colors">
       <div className="container mx-auto px-6 py-16 max-w-7xl">
@@ -84,19 +119,36 @@ const Footer = () => {
               </p>
             </div>
 
-            <form onSubmit={(e) => e.preventDefault()} className="space-y-3 font-sans">
+            <form onSubmit={handleSubscribe} className="space-y-3 font-sans">
               <div className="relative">
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your producer email"
-                  className="w-full px-4 py-3 text-sm bg-white dark:bg-dark border border-tertiary/30 rounded-xl focus:outline-none focus:border-primary text-dark dark:text-light placeholder-dark/30 dark:placeholder-light/30 shadow-inner"
+                  required
+                  disabled={status === 'loading'}
+                  className="w-full px-4 py-3 text-sm bg-white dark:bg-dark border border-tertiary/30 rounded-xl focus:outline-none focus:border-primary text-dark dark:text-light placeholder-dark/30 dark:placeholder-light/30 shadow-inner disabled:opacity-60"
                 />
               </div>
+
+              {/* Status message displayed right before the subscribe button */}
+              {message && (
+                <div className={`text-xs px-3 py-2 rounded-lg font-medium transition-all ${
+                  status === 'success' 
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                }`}>
+                  {message}
+                </div>
+              )}
+
               <button
                 type="submit"
-                className="w-full py-3 text-sm font-bold text-white bg-primary hover:bg-secondary rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/25"
+                disabled={status === 'loading'}
+                className="w-full py-3 text-sm font-bold text-white bg-primary hover:bg-secondary rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/25 disabled:opacity-50 cursor-pointer"
               >
-                <span>Join Producer List</span>
+                <span>{status === 'loading' ? 'Joining List...' : 'Join Producer List'}</span>
                 <ArrowRightIcon className="h-4 w-4" />
               </button>
             </form>

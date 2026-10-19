@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Use environment variable for production, fallback to localhost for development
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://beats.softgenie.org/api';
 
 const httpClient = axios.create({
   baseURL,

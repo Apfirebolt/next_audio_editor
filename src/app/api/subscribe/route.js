@@ -55,3 +55,21 @@ export async function POST(request) {
     );
   }
 }
+
+// get all subscribers
+export async function GET() {
+  try {
+    await connectDB();
+    const subscribers = await Subscriber.find().sort({ createdAt: -1 });
+    return NextResponse.json(
+      { subscribers },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Fetch subscribers error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error. Please try again later.' },
+      { status: 500 }
+    );
+  }
+}

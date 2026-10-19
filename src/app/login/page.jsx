@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import axios from "axios";
 import Cookie from "js-cookie";
 import { RadioIcon, ArrowRightIcon, LockClosedIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import httpClient from "../../lib/api"; // Adjust import path based on your lib/api.js location
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +17,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      once: true,
+      easing: "ease-out-cubic",
+    });
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -27,11 +37,8 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", { email, password });
-
-      if (res.status !== 200) {
-        throw new Error(res.data?.message || "Login failed");
-      }
+      // Using your configured Axios httpClient instance pointing to /auth/login
+      const res = await httpClient.post("/auth/login", { email, password });
 
       const user = res.data;
 
@@ -39,13 +46,14 @@ export default function LoginPage() {
       Cookie.set("user", JSON.stringify(user), { expires: 7, sameSite: "Lax" });
       if (user.token) {
         Cookie.set("token", user.token, { expires: 7, sameSite: "Lax" });
-        axios.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
+        httpClient.defaults.headers.common["Authorization"] = `Bearer ${user.token}`;
       }
 
       // Redirect on success
       router.push("/editor");
     } catch (err) {
-      setError(err.message || "An error occurred during authentication.");
+      const errorMessage = err.response?.data?.message || err.message || "An error occurred during authentication.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -55,10 +63,13 @@ export default function LoginPage() {
     <Fragment>
       <Header />
       <main className="min-h-screen bg-light dark:bg-dark flex items-center justify-center p-6 transition-colors">
-        <div className="w-full max-w-md bg-white dark:bg-tertiary/5 border border-tertiary/20 dark:border-tertiary/10 rounded-3xl shadow-sm p-8 space-y-8">
+        <div 
+          data-aos="fade-up"
+          className="w-full max-w-md bg-white dark:bg-tertiary/5 border border-tertiary/20 dark:border-tertiary/10 rounded-3xl shadow-sm p-8 space-y-8"
+        >
           
           {/* Brand Header */}
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-3" data-aos="fade-down" data-aos-delay="100">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 mb-1">
               <RadioIcon className="h-6 w-6 text-primary animate-pulse" />
             </div>
@@ -70,7 +81,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5 font-sans">
+          <form onSubmit={handleSubmit} className="space-y-5 font-sans" data-aos="fade-up" data-aos-delay="200">
             {error && (
               <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl font-medium">
                 {error}
@@ -128,7 +139,7 @@ export default function LoginPage() {
           </form>
 
           {/* Footer Link */}
-          <div className="text-center text-xs text-dark/60 dark:text-light/60 font-sans pt-2 border-t border-tertiary/20 dark:border-tertiary/10">
+          <div className="text-center text-xs text-dark/60 dark:text-light/60 font-sans pt-2 border-t border-tertiary/20 dark:border-tertiary/10" data-aos="fade-in" data-aos-delay="300">
             Don't have a studio account?{" "}
             <Link href="/register" className="text-primary hover:underline font-bold">
               Sign up

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import Cookie from "js-cookie";
 import { 
   MusicalNoteIcon, 
   SparklesIcon, 
@@ -11,10 +13,24 @@ import {
   ShieldCheckIcon,
   CodeBracketIcon,
   ArrowRightIcon,
-  BoltIcon
+  BoltIcon,
+  UserCircleIcon
 } from "@heroicons/react/24/outline";
 
 const AboutPage = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const userCookie = Cookie.get("user");
+    if (userCookie) {
+      try {
+        setUser(JSON.parse(userCookie));
+      } catch (err) {
+        console.error("Failed to parse user cookie:", err);
+      }
+    }
+  }, []);
+
   const features = [
     {
       icon: <MusicalNoteIcon className="h-6 w-6 text-primary" />,
@@ -57,10 +73,19 @@ const AboutPage = () => {
         {/* HERO SECTION with AOS */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7 space-y-6" data-aos="fade-right">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase border border-primary/20 shadow-sm">
-              <CodeBracketIcon className="h-4 w-4 animate-pulse" />
-              <span>Browser-based DAW</span>
-            </div>
+            
+            {/* User Login Status Banner */}
+            {user ? (
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20 shadow-sm">
+                <UserCircleIcon className="h-4 w-4" />
+                <span>Active Studio Session: <strong className="text-dark dark:text-light">{user.username || user.email}</strong></span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase border border-primary/20 shadow-sm">
+                <CodeBracketIcon className="h-4 w-4 animate-pulse" />
+                <span>Browser-based DAW</span>
+              </div>
+            )}
             
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight font-heading leading-tight">
               Crafting Audio Engineering <span className="text-primary">Without Boundaries.</span>
@@ -115,6 +140,12 @@ const AboutPage = () => {
                   <span className="text-primary font-bold">LATENCY</span>
                   <span className="text-warning">&lt; 12ms (Web Audio)</span>
                 </div>
+                {user && (
+                  <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+                    <span className="text-primary font-bold">PRODUCER_SESSION</span>
+                    <span className="text-primary truncate max-w-[160px]">{user.email}</span>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 flex items-center gap-3 text-xs text-dark/60 dark:text-light/60">
@@ -183,4 +214,3 @@ const AboutPage = () => {
 };
 
 export default AboutPage;
-

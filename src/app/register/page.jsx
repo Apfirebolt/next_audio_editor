@@ -6,6 +6,7 @@ import Link from "next/link";
 import { RadioIcon, ArrowRightIcon, LockClosedIcon, EnvelopeIcon, UserIcon } from "@heroicons/react/24/outline";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import httpClient from "../../lib/api";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -36,21 +37,16 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+      // Using your configured Axios httpClient instance pointing to /auth/register
+      const res = await httpClient.post("/auth/register", { 
+        username, 
+        email, 
+        password 
       });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.message || "Registration failed");
-      }
-
-      // Redirect on success
-      router.push("/dashboard");
     } catch (err) {
-      setError(err.message || "An error occurred during registration.");
+      // Extract error message safely from Axios error response or fallback
+      const errorMessage = err.response?.data?.message || err.message || "An error occurred during registration.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
